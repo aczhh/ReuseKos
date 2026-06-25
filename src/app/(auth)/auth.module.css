@@ -1,0 +1,242 @@
+/* Auth Layout */
+.authPage {
+  min-height: 100dvh;
+  display: flex;
+  flex-direction: column;
+  padding: 24px 24px 40px;
+  position: relative;
+  overflow: hidden;
+}
+
+/* Background decoration */
+.blob1 {
+  position: absolute;
+  top: -100px;
+  right: -100px;
+  width: 300px;
+  height: 300px;
+  background: radial-gradient(circle, rgba(99, 102, 241, 0.2) 0%, transparent 70%);
+  border-radius: 50%;
+  pointer-events: none;
+}
+
+.blob2 {
+  position: absolute;
+  bottom: -80px;
+  left: -80px;
+  width: 250px;
+  height: 250px;
+  background: radial-gradient(circle, rgba(193, 68, 14, 0.15) 0%, transparent 70%);
+  border-radius: 50%;
+  pointer-events: none;
+}
+
+/* Logo header */
+.authHeader {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-top: 48px;
+  margin-bottom: 48px;
+  animation: slideUp 0.5s ease;
+}
+
+.logoWrapper {
+  width: 72px;
+  height: 72px;
+  background: var(--gradient-brand);
+  border-radius: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 16px;
+  box-shadow: var(--shadow-glow);
+  animation: float 3s ease-in-out infinite;
+}
+
+.appName {
+  font-size: 2rem;
+  font-weight: 800;
+  background: var(--gradient-brand);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  letter-spacing: -0.03em;
+  margin-bottom: 4px;
+}
+
+.appTagline {
+  font-size: 0.875rem;
+  color: var(--text-muted);
+  text-align: center;
+}
+
+/* Form card */
+.authCard {
+  background: var(--bg-surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-xl);
+  padding: 28px 24px;
+  animation: slideUp 0.5s ease 0.1s backwards;
+}
+
+.authCardTitle {
+  font-size: 1.3rem;
+  font-weight: 700;
+  margin-bottom: 4px;
+}
+
+.authCardSubtitle {
+  font-size: 0.875rem;
+  color: var(--text-muted);
+  margin-bottom: 24px;
+}
+
+.formStack {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+/* Email input with icon */
+.emailInputWrapper {
+  position: relative;
+}
+
+.emailInputWrapper .form-input {
+  padding-left: 44px;
+}
+
+.emailIcon {
+  position: absolute;
+  left: 14px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--text-muted);
+  pointer-events: none;
+}
+
+/* OTP Input */
+.otpWrapper {
+  display: flex;
+  gap: 10px;
+  justify-content: center;
+  margin: 8px 0;
+}
+
+.otpBox {
+  width: 48px;
+  height: 56px;
+  background: var(--bg-card);
+  border: 2px solid var(--border);
+  border-radius: var(--radius-md);
+  text-align: center;
+  font-size: 1.4rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  transition: all var(--transition-fast);
+}
+
+.otpBox:focus {
+  border-color: var(--indigo-500);
+  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.2);
+  background: var(--bg-card-hover);
+}
+
+.otpBox.filled {
+  border-color: var(--indigo-600);
+  background: rgba(99, 102, 241, 0.1);
+}
+
+/* Footer */
+.authFooter {
+  text-align: center;
+  margin-top: 20px;
+  font-size: 0.875rem;
+  color: var(--text-muted);
+}
+
+.authLink {
+  color: var(--indigo-400);
+  font-weight: 600;
+  cursor: pointer;
+  transition: color var(--transition-fast);
+}
+
+.authLink:hover {
+  color: var(--indigo-300);
+}
+
+/* Role selection */
+.roleGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+.roleCard {
+  padding: 16px 12px;
+  border: 2px solid var(--border);
+  border-radius: var(--radius-md);
+  background: var(--bg-card);
+  text-align: center;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+}
+
+.roleCard:hover {
+  border-color: var(--border-light);
+}
+
+.roleCard.selected {
+  border-color: var(--indigo-500);
+  background: rgba(99, 102, 241, 0.1);
+}
+
+.roleEmoji {
+  font-size: 1.8rem;
+}
+
+.roleTitle {
+  font-weight: 700;
+  font-size: 0.9rem;
+}
+
+.roleDesc {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+}
+
+/* Resend code */
+.resendWrapper {
+  text-align: center;
+  margin-top: 16px;
+}
+
+/* Step indicator */
+.stepIndicator {
+  display: flex;
+  gap: 6px;
+  justify-content: center;
+  margin-bottom: 24px;
+}
+
+.step {
+  height: 4px;
+  border-radius: 2px;
+  transition: all var(--transition-base);
+}
+
+.stepActive {
+  background: var(--indigo-500);
+  flex: 2;
+}
+
+.stepInactive {
+  background: var(--border);
+  flex: 1;
+}

@@ -1,0 +1,477 @@
+.page {
+  min-height: 100dvh;
+  padding-top: var(--navbar-height);
+  background: var(--bg-base);
+}
+
+.inner {
+  max-width: var(--max-width);
+  margin: 0 auto;
+  padding: 24px var(--content-padding) 60px;
+}
+
+/* ===========================
+   SAFETY BANNER
+=========================== */
+.safetyBanner {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 18px;
+  background: var(--green-50);
+  border: 1px solid rgba(45, 90, 64, 0.2);
+  border-radius: var(--radius-lg);
+  font-size: 0.875rem;
+  color: var(--green-800);
+  margin-bottom: 14px;
+}
+
+.safetyIcon {
+  color: var(--green-700);
+  flex-shrink: 0;
+}
+
+/* ===========================
+   LOCATION BAR
+=========================== */
+.locationBar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.875rem;
+  color: var(--text-secondary);
+  margin-bottom: 20px;
+}
+
+.locationIcon {
+  color: var(--orange-500);
+  flex-shrink: 0;
+}
+
+/* ===========================
+   PAGE HEADER
+=========================== */
+.pageTitle {
+  font-size: 1.5rem;
+  font-weight: 800;
+  color: var(--text-primary);
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  margin-bottom: 4px;
+}
+
+.pageSubtitle {
+  font-size: 0.9rem;
+  color: var(--text-muted);
+  margin-bottom: 24px;
+}
+
+/* ===========================
+   EMPTY STATE
+=========================== */
+.emptyCart {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+  padding: 80px 24px;
+  text-align: center;
+}
+
+.emptyIcon {
+  color: var(--gray-300);
+}
+
+.emptyTitle {
+  font-size: 1.3rem;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.emptyDesc {
+  font-size: 0.9rem;
+  color: var(--text-muted);
+}
+
+/* ===========================
+   LAYOUT
+=========================== */
+.layout {
+  display: grid;
+  grid-template-columns: 1fr 340px;
+  gap: 24px;
+  align-items: start;
+}
+
+/* ===========================
+   ITEMS COL
+=========================== */
+.itemsCol {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+/* Select all */
+.selectAllRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 18px;
+  background: var(--bg-surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+}
+
+.deleteBtn {
+  background: none;
+  border: none;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--red-500);
+  cursor: pointer;
+  transition: color var(--transition-fast);
+}
+
+.deleteBtn:hover {
+  color: var(--red-600);
+}
+
+/* Checkbox */
+.checkboxLabel {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  cursor: pointer;
+}
+
+.checkbox {
+  display: none;
+}
+
+.checkboxCustom {
+  width: 20px;
+  height: 20px;
+  border: 2px solid var(--border-medium);
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  background: var(--bg-surface);
+  transition: all var(--transition-fast);
+  position: relative;
+}
+
+.checkbox:checked + .checkboxCustom {
+  background: var(--green-700);
+  border-color: var(--green-700);
+}
+
+.checkbox:checked + .checkboxCustom::after {
+  content: '';
+  position: absolute;
+  width: 5px;
+  height: 9px;
+  border: 2px solid white;
+  border-top: none;
+  border-left: none;
+  transform: rotate(45deg);
+  top: 1px;
+}
+
+.checkboxText {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+/* Item Card */
+.itemCard {
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+  padding: 18px;
+  background: var(--bg-surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  transition: all var(--transition-fast);
+}
+
+.itemCard:hover {
+  border-color: var(--border-medium);
+  box-shadow: var(--shadow-sm);
+}
+
+/* Item image */
+.itemImg {
+  width: 100px;
+  height: 100px;
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  background: var(--gray-100);
+  flex-shrink: 0;
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 2rem;
+}
+
+.itemImg img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.itemUniv {
+  position: absolute;
+  top: 6px;
+  left: 6px;
+  background: var(--green-800);
+  color: white;
+  font-size: 0.6rem;
+  font-weight: 700;
+  padding: 2px 6px;
+  border-radius: var(--radius-sm);
+}
+
+/* Item info */
+.itemInfo {
+  flex: 1;
+  min-width: 0;
+}
+
+.itemCat {
+  font-size: 0.65rem;
+  font-weight: 700;
+  color: var(--text-muted);
+  letter-spacing: 0.06em;
+}
+
+.itemName {
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin-top: 4px;
+  margin-bottom: 8px;
+}
+
+.itemMeta {
+  display: flex;
+  gap: 12px;
+  font-size: 0.78rem;
+  color: var(--text-muted);
+  margin-bottom: 6px;
+}
+
+.itemLocation {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 0.78rem;
+  color: var(--text-muted);
+  margin-bottom: 12px;
+}
+
+.itemBottom {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+/* Qty Control */
+.qtyControl {
+  display: flex;
+  align-items: center;
+  gap: 0;
+  border: 1.5px solid var(--border-medium);
+  border-radius: var(--radius-md);
+  overflow: hidden;
+}
+
+.qtyBtn {
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--gray-50);
+  border: none;
+  cursor: pointer;
+  color: var(--text-secondary);
+  transition: background var(--transition-fast);
+}
+
+.qtyBtn:hover:not(:disabled) {
+  background: var(--gray-200);
+}
+
+.qtyBtn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.qtyValue {
+  padding: 0 14px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  min-width: 36px;
+  text-align: center;
+}
+
+/* Item right */
+.itemRight {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+.trashBtn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: var(--text-muted);
+  display: flex;
+  padding: 6px;
+  border-radius: var(--radius-sm);
+  transition: all var(--transition-fast);
+}
+
+.trashBtn:hover {
+  color: var(--red-500);
+  background: rgba(220, 38, 38, 0.06);
+}
+
+.itemPrice {
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+/* ===========================
+   SUMMARY COL
+=========================== */
+.summaryCol {
+  position: sticky;
+  top: calc(var(--navbar-height) + 16px);
+}
+
+.summaryCard {
+  background: var(--bg-surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-xl);
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.summaryTitle {
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  font-family: 'Plus Jakarta Sans', sans-serif;
+}
+
+.summaryRows {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.summaryRow {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.9rem;
+  color: var(--text-secondary);
+}
+
+.summaryAdminFee {
+  color: var(--orange-600);
+  font-weight: 600;
+}
+
+.summaryDivider {
+  height: 1px;
+  background: var(--border);
+}
+
+.summaryTotal {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.summaryTotalValue {
+  font-size: 1.2rem;
+  font-weight: 800;
+  color: var(--text-primary);
+}
+
+.checkoutBtn {
+  background: var(--green-800) !important;
+  font-size: 0.95rem;
+  padding: 14px !important;
+}
+
+.checkoutBtn:hover:not(:disabled) {
+  background: var(--green-900) !important;
+}
+
+.continueBtn {
+  font-size: 0.9rem;
+}
+
+.guaranteeRow {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  font-size: 0.78rem;
+  color: var(--text-muted);
+  line-height: 1.4;
+}
+
+.guaranteeIcon {
+  color: var(--green-700);
+  flex-shrink: 0;
+  margin-top: 1px;
+}
+
+/* ===========================
+   RESPONSIVE
+=========================== */
+@media (max-width: 900px) {
+  .layout {
+    grid-template-columns: 1fr;
+  }
+
+  .summaryCol {
+    position: static;
+    order: -1;
+  }
+}
+
+@media (max-width: 600px) {
+  .itemCard {
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+
+  .itemImg {
+    width: 80px;
+    height: 80px;
+  }
+
+  .itemRight {
+    flex-direction: row;
+    width: 100%;
+    justify-content: space-between;
+    align-items: center;
+  }
+}

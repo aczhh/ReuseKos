@@ -1,0 +1,233 @@
+.card {
+  background: var(--bg-surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  transition: all var(--transition-base);
+  display: flex;
+  flex-direction: column;
+  text-decoration: none;
+  color: inherit;
+}
+
+.card:hover {
+  border-color: var(--border-medium);
+  transform: translateY(-3px);
+  box-shadow: var(--shadow-lg);
+}
+
+/* ===========================
+   IMAGE
+=========================== */
+.imageWrapper {
+  position: relative;
+  width: 100%;
+  padding-bottom: 72%;
+  background: var(--gray-100);
+  overflow: hidden;
+}
+
+.image {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform var(--transition-slow);
+}
+
+.card:hover .image {
+  transform: scale(1.04);
+}
+
+.imagePlaceholder {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 2.5rem;
+  background: linear-gradient(135deg, #f3f4f6, #e5e7eb);
+}
+
+/* ===========================
+   TOP BADGES (univ)
+=========================== */
+.topBadges {
+  position: absolute;
+  top: 8px;
+  left: 8px;
+  display: flex;
+  gap: 4px;
+}
+
+.univBadge {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  padding: 3px 7px;
+  background: var(--green-800);
+  color: white;
+  font-size: 0.65rem;
+  font-weight: 700;
+  border-radius: var(--radius-sm);
+  letter-spacing: 0.04em;
+}
+
+/* ===========================
+   WISHLIST BUTTON
+=========================== */
+.wishlistBtn {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  width: 28px;
+  height: 28px;
+  background: white;
+  border: none;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  box-shadow: var(--shadow-sm);
+  color: var(--gray-400);
+  transition: all var(--transition-fast);
+}
+
+.wishlistBtn:hover {
+  color: var(--red-500);
+  transform: scale(1.1);
+  box-shadow: var(--shadow-md);
+}
+
+/* ===========================
+   DISTANCE BADGE
+=========================== */
+.distanceBadge {
+  position: absolute;
+  bottom: 8px;
+  left: 8px;
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  padding: 3px 8px;
+  background: rgba(0, 0, 0, 0.55);
+  color: white;
+  font-size: 0.65rem;
+  font-weight: 600;
+  border-radius: var(--radius-full);
+  backdrop-filter: blur(4px);
+}
+
+/* ===========================
+   VIDEO TAG
+=========================== */
+.videoTag {
+  position: absolute;
+  bottom: 8px;
+  right: 8px;
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  padding: 3px 8px;
+  background: var(--green-800);
+  color: white;
+  font-size: 0.65rem;
+  font-weight: 600;
+  border-radius: var(--radius-full);
+}
+
+/* ===========================
+   SOLD OVERLAY
+=========================== */
+.soldOverlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.soldLabel {
+  background: var(--red-500);
+  color: white;
+  font-size: 0.8rem;
+  font-weight: 700;
+  padding: 6px 16px;
+  border-radius: var(--radius-md);
+  letter-spacing: 0.1em;
+}
+
+/* ===========================
+   CARD BODY
+=========================== */
+.body {
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  flex: 1;
+}
+
+.category {
+  font-size: 0.65rem;
+  font-weight: 700;
+  color: var(--text-muted);
+  letter-spacing: 0.06em;
+}
+
+.title {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  line-height: 1.35;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+/* ===========================
+   CONDITION BADGE
+=========================== */
+.condition {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: var(--radius-sm);
+  font-size: 0.7rem;
+  font-weight: 600;
+  width: fit-content;
+  margin-top: 2px;
+}
+
+.condition_likeNew {
+  background: rgba(16, 185, 129, 0.1);
+  color: var(--emerald-500);
+}
+
+.condition_veryGood {
+  background: rgba(45, 90, 64, 0.1);
+  color: var(--green-700);
+}
+
+.condition_good {
+  background: rgba(245, 158, 11, 0.1);
+  color: var(--amber-500);
+}
+
+.condition_used {
+  background: rgba(107, 114, 128, 0.1);
+  color: var(--gray-500);
+}
+
+/* ===========================
+   PRICE
+=========================== */
+.price {
+  font-size: 0.95rem;
+  font-weight: 800;
+  color: var(--orange-600);
+  margin-top: 2px;
+}
