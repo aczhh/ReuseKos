@@ -1,6 +1,7 @@
 'use client';
 
 import Link from 'next/link';
+import Image from 'next/image';
 import { usePathname, useRouter } from 'next/navigation';
 import { Search, ShoppingCart, Heart, User, Menu, X, MapPin, ChevronDown } from 'lucide-react';
 import { useState } from 'react';
@@ -39,16 +40,14 @@ export function Navbar() {
         <div className={styles.topBarInner}>
           {/* Logo */}
           <Link href="/beranda" className={styles.logo}>
-            <div className={styles.logoIcon}>
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
-                <path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z" fill="white" opacity="0.95"/>
-                <path d="M9 22V12h6v10" fill="rgba(0,0,0,0.35)"/>
-              </svg>
-            </div>
-            <div className={styles.logoText}>
-              <span className={styles.logoMain}>Reuse<span className={styles.logoAccent}>Kos</span></span>
-              <span className={styles.logoTagline}>Barang Kos, Hemat Budget</span>
-            </div>
+            <Image 
+              src="/logo.png" 
+              alt="ReuseKos Logo" 
+              width={286} 
+              height={70} 
+              className={styles.logoImage}
+              priority
+            />
           </Link>
 
           {/* Search Bar (desktop) */}

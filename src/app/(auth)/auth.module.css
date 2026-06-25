@@ -41,28 +41,12 @@
   animation: slideUp 0.5s ease;
 }
 
-.logoWrapper {
-  width: 72px;
-  height: 72px;
-  background: var(--gradient-brand);
-  border-radius: 20px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  margin-bottom: 16px;
-  box-shadow: var(--shadow-glow);
+.mainLogo {
+  height: 64px;
+  width: auto;
+  margin-bottom: 8px;
+  filter: drop-shadow(0px 2px 4px rgba(0,0,0,0.1));
   animation: float 3s ease-in-out infinite;
-}
-
-.appName {
-  font-size: 2rem;
-  font-weight: 800;
-  background: var(--gradient-brand);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
-  letter-spacing: -0.03em;
-  margin-bottom: 4px;
 }
 
 .appTagline {

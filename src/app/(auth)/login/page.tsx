@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
+import Image from 'next/image';
 import { Mail, ArrowRight, ShieldCheck } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
 import styles from '../auth.module.css';
@@ -107,13 +108,14 @@ export default function LoginPage() {
       <div className={styles.blob2} />
 
       <div className={styles.authHeader}>
-        <div className={styles.logoWrapper}>
-          <svg width="36" height="36" viewBox="0 0 24 24" fill="none">
-            <path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z" fill="white" opacity="0.9"/>
-            <path d="M9 22V12h6v10" fill="rgba(0,0,0,0.4)"/>
-          </svg>
-        </div>
-        <h1 className={styles.appName}>ReuseKos</h1>
+        <Image 
+          src="/logo.png" 
+          alt="ReuseKos Logo" 
+          width={286} 
+          height={70} 
+          className={styles.mainLogo}
+          priority
+        />
         <p className={styles.appTagline}>Marketplace perabot kos khusus mahasiswa</p>
       </div>
 

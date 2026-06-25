@@ -7,7 +7,7 @@
   left: 0;
   right: 0;
   z-index: 100;
-  background: var(--green-800);
+  background: #203226;
   box-shadow: 0 2px 12px rgba(0, 0, 0, 0.25);
 }
 
@@ -20,10 +20,10 @@
   max-width: var(--max-width);
   margin: 0 auto;
   padding: 0 var(--content-padding);
-  height: 68px;
+  height: 90px;
   display: flex;
   align-items: center;
-  gap: 20px;
+  justify-content: space-between;
 }
 
 /* ===========================
@@ -32,52 +32,20 @@
 .logo {
   display: flex;
   align-items: center;
-  gap: 10px;
   flex-shrink: 0;
   text-decoration: none;
 }
 
-.logoIcon {
-  width: 40px;
-  height: 40px;
-  background: rgba(255, 255, 255, 0.12);
-  border: 1.5px solid rgba(255, 255, 255, 0.2);
-  border-radius: 10px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
-  transition: background var(--transition-fast);
+.logoImage {
+  height: 70px;
+  width: auto;
+  /* Stronger white glow/shadow */
+  filter: drop-shadow(0px 0px 4px rgba(255, 255, 255, 1)) drop-shadow(0px 0px 12px rgba(255, 255, 255, 0.8));
+  transition: transform var(--transition-fast);
 }
 
-.logo:hover .logoIcon {
-  background: rgba(255, 255, 255, 0.2);
-}
-
-.logoText {
-  display: flex;
-  flex-direction: column;
-  gap: 1px;
-}
-
-.logoMain {
-  font-family: 'Plus Jakarta Sans', sans-serif;
-  font-size: 1.15rem;
-  font-weight: 800;
-  color: white;
-  line-height: 1;
-  letter-spacing: -0.02em;
-}
-
-.logoAccent {
-  color: var(--orange-400);
-}
-
-.logoTagline {
-  font-size: 0.62rem;
-  color: rgba(255, 255, 255, 0.5);
-  font-weight: 400;
-  line-height: 1;
+.logo:hover .logoImage {
+  transform: scale(1.05);
 }
 
 /* ===========================
@@ -88,6 +56,7 @@
   max-width: 520px;
   display: flex;
   align-items: center;
+  margin: 0 40px;
   background: rgba(255, 255, 255, 0.1);
   border: 1.5px solid rgba(255, 255, 255, 0.15);
   border-radius: var(--radius-md);
@@ -145,7 +114,7 @@
 .navActions {
   display: flex;
   align-items: center;
-  gap: 4px;
+  gap: 24px;
   flex-shrink: 0;
 }
 
@@ -155,7 +124,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  color: rgba(255, 255, 255, 0.8);
+  color: var(--orange-500);
   border-radius: var(--radius-md);
   background: transparent;
   border: none;
@@ -195,7 +164,7 @@
    CATEGORY BAR
 =========================== */
 .categoryBar {
-  background: rgba(0, 0, 0, 0.15);
+  background: #5A6B60;
 }
 
 .categoryBarInner {
@@ -204,7 +173,8 @@
   padding: 0 var(--content-padding);
   display: flex;
   align-items: center;
-  gap: 0;
+  justify-content: center;
+  gap: 30px;
   overflow-x: auto;
   scrollbar-width: none;
 }
