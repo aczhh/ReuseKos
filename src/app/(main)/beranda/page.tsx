@@ -4,7 +4,8 @@ import { useState, useEffect, useCallback } from 'react';
 import { Search, ChevronRight, MapPin, Shield } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { supabase, Product } from '@/lib/supabase';
+import { databases, DATABASE_ID, PRODUCTS_ID, PROFILES_ID, mapDoc, Product } from '@/lib/appwrite';
+import { Query } from 'appwrite';
 import { useAuth } from '@/lib/AuthContext';
 import { PRODUCT_CATEGORIES } from '@/lib/utils';
 import ProductCard, { ProductCardSkeleton } from '@/components/ProductCard';
@@ -27,14 +28,42 @@ export default function BerandaPage() {
 
   const fetchProducts = useCallback(async () => {
     setLoading(true);
-    const { data, error } = await supabase
-      .from('products')
-      .select('*, seller:profiles!products_seller_id_fkey(*)')
-      .eq('is_sold', false)
-      .order('created_at', { ascending: false })
-      .limit(8);
+    try {
+      const response = await databases.listDocuments(
+        DATABASE_ID,
+        PRODUCTS_ID,
+        [
+          Query.equal('is_sold', false),
+          Query.orderDesc('$createdAt'),
+          Query.limit(8)
+        ]
+      );
 
-    if (!error && data) setProducts(data as Product[]);
+      const fetchedProducts = response.documents.map(doc => mapDoc<Product>(doc));
+      
+      // Fetch sellers
+      const sellerIds = [...new Set(fetchedProducts.map(p => p.seller_id))];
+      if (sellerIds.length > 0) {
+        const sellersResponse = await databases.listDocuments(
+          DATABASE_ID,
+          PROFILES_ID,
+          [Query.equal('user_id', sellerIds)]
+        );
+        
+        const sellersMap = new Map();
+        sellersResponse.documents.forEach(doc => {
+          sellersMap.set(doc.user_id, mapDoc(doc));
+        });
+
+        fetchedProducts.forEach(p => {
+          p.seller = sellersMap.get(p.seller_id);
+        });
+      }
+
+      setProducts(fetchedProducts);
+    } catch (error) {
+      console.error('Error fetching products:', error);
+    }
     setLoading(false);
   }, []);
 

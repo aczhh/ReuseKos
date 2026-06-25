@@ -3,7 +3,8 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { LogOut, Edit2, Package, Wallet, ChevronRight } from 'lucide-react';
-import { supabase, Transaction } from '@/lib/supabase';
+import { databases, DATABASE_ID, TRANSACTIONS_ID, PRODUCTS_ID, mapDoc, Transaction } from '@/lib/appwrite';
+import { Query } from 'appwrite';
 import { useAuth } from '@/lib/AuthContext';
 import Link from 'next/link';
 
@@ -30,30 +31,41 @@ export default function ProfilPage() {
     if (!user) return;
 
     const fetchTx = async () => {
-      const field = activeTab === 'beli' ? 'buyer_id' : 'seller_id';
+      try {
+        let queries = [Query.orderDesc('$createdAt'), Query.limit(20)];
 
-      let query = supabase
-        .from('transactions')
-        .select('*, product:products(title, photos)')
-        .order('created_at', { ascending: false })
-        .limit(20);
-
-      if (activeTab === 'beli') {
-        query = query.eq('buyer_id', user.id);
-      } else {
-        // Get transactions for products owned by this seller
-        const { data: myProducts } = await supabase
-          .from('products')
-          .select('id')
-          .eq('seller_id', user.id);
-
-        if (myProducts?.length) {
-          query = query.in('product_id', myProducts.map(p => p.id));
+        if (activeTab === 'beli') {
+          queries.push(Query.equal('buyer_id', user.$id));
+        } else {
+          queries.push(Query.equal('seller_id', user.$id));
         }
-      }
 
-      const { data } = await query;
-      setTransactions((data as Transaction[]) || []);
+        const response = await databases.listDocuments(DATABASE_ID, TRANSACTIONS_ID, queries);
+        const fetchedTxs = response.documents.map(doc => mapDoc<Transaction>(doc));
+
+        // Fetch related products manually
+        const productIds = [...new Set(fetchedTxs.map(tx => tx.product_id))];
+        if (productIds.length > 0) {
+          const productsResponse = await databases.listDocuments(
+            DATABASE_ID, 
+            PRODUCTS_ID, 
+            [Query.equal('$id', productIds)]
+          );
+          
+          const productsMap = new Map();
+          productsResponse.documents.forEach(doc => {
+            productsMap.set(doc.$id, mapDoc(doc));
+          });
+          
+          fetchedTxs.forEach(tx => {
+            tx.product = productsMap.get(tx.product_id);
+          });
+        }
+
+        setTransactions(fetchedTxs);
+      } catch (error) {
+        console.error('Error fetching transactions', error);
+      }
       setTxLoading(false);
     };
 

@@ -3,9 +3,10 @@
 import Link from 'next/link';
 import Image from 'next/image';
 import { usePathname, useRouter } from 'next/navigation';
-import { Search, ShoppingCart, Heart, User, Menu, X, MapPin, ChevronDown } from 'lucide-react';
-import { useState } from 'react';
+import { Search, ShoppingCart, User, Menu, X, Wallet, Package, LogOut, Store, ChevronDown, Settings, Trash2 } from 'lucide-react';
+import { useState, useRef, useEffect } from 'react';
 import { useCart } from '@/lib/CartContext';
+import { useAuth } from '@/lib/AuthContext';
 import styles from './Navigation.module.css';
 
 const NAV_CATEGORIES = [
@@ -17,10 +18,234 @@ const NAV_CATEGORIES = [
   { label: 'Fashion', href: '/cari?cat=Lainnya' },
 ];
 
+function formatPrice(n: number) {
+  return new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 }).format(n);
+}
+
+function CartDropdown() {
+  const { items, totalItems, totalPrice, removeFromCart } = useCart();
+  const router = useRouter();
+  const [open, setOpen] = useState(false);
+  const ref = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const handleClick = (e: MouseEvent) => {
+      if (ref.current && !ref.current.contains(e.target as Node)) {
+        setOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClick);
+    return () => document.removeEventListener('mousedown', handleClick);
+  }, []);
+
+  return (
+    <div className={styles.accountWrapper} ref={ref}>
+      <button
+        className={styles.actionBtn}
+        onClick={() => setOpen(!open)}
+        aria-label="Keranjang"
+        style={{ position: 'relative' }}
+      >
+        <ShoppingCart size={20} />
+        {totalItems > 0 && (
+          <span className={styles.cartBadge}>{totalItems}</span>
+        )}
+      </button>
+
+      {open && (
+        <div className={styles.cartDropdown}>
+          <div className={styles.cartDropdownHeader}>
+            <span className={styles.cartDropdownTitle}>
+              Keranjang Belanja {totalItems > 0 && `(${totalItems})`}
+            </span>
+            <button className={styles.cartDropdownClose} onClick={() => setOpen(false)}>
+              <X size={16} />
+            </button>
+          </div>
+
+          {items.length === 0 ? (
+            <div className={styles.cartEmpty}>
+              <div className={styles.cartEmptyIcon}>🛒</div>
+              <p className={styles.cartEmptyText}>Keranjang belanja saat ini kosong</p>
+              <Link href="/beranda" className={styles.cartEmptyLink} onClick={() => setOpen(false)}>
+                Mulai Belanja
+              </Link>
+            </div>
+          ) : (
+            <>
+              <div className={styles.cartItems}>
+                {items.map((item) => (
+                  <div key={item.product.id} className={styles.cartItem}>
+                    <div className={styles.cartItemImg}>
+                      {item.product.photos?.[0]
+                        ? <img src={item.product.photos[0]} alt={item.product.title} />
+                        : <span>🛋️</span>}
+                    </div>
+                    <div className={styles.cartItemInfo}>
+                      <p className={styles.cartItemName}>{item.product.title}</p>
+                      <p className={styles.cartItemQty}>Jumlah: {item.quantity}</p>
+                      <p className={styles.cartItemPrice}>{formatPrice(item.product.price)}</p>
+                    </div>
+                    <button
+                      className={styles.cartItemRemove}
+                      onClick={() => removeFromCart(item.product.id)}
+                      aria-label="Hapus"
+                    >
+                      <Trash2 size={14} />
+                    </button>
+                  </div>
+                ))}
+              </div>
+
+              <div className={styles.cartDropdownDivider} />
+
+              <div className={styles.cartSubtotalRow}>
+                <span className={styles.cartSubtotalLabel}>SUBTOTAL</span>
+                <span className={styles.cartSubtotalValue}>{formatPrice(totalPrice)}</span>
+              </div>
+
+              <div className={styles.cartDropdownActions}>
+                {items.length === 1 && (
+                  <Link
+                    href={`/checkout/${items[0].product.id}`}
+                    className={styles.cartBuyNowBtn}
+                    onClick={() => setOpen(false)}
+                  >
+                    Beli Sekarang
+                  </Link>
+                )}
+                <Link
+                  href="/keranjang"
+                  className={styles.cartViewAllBtn}
+                  onClick={() => setOpen(false)}
+                >
+                  Lihat Keranjang
+                </Link>
+              </div>
+            </>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
+
+function AccountDropdown() {
+  const { user, profile, signOut } = useAuth();
+  const router = useRouter();
+  const [open, setOpen] = useState(false);
+  const ref = useRef<HTMLDivElement>(null);
+
+  // Close when clicking outside
+  useEffect(() => {
+    const handleClick = (e: MouseEvent) => {
+      if (ref.current && !ref.current.contains(e.target as Node)) {
+        setOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClick);
+    return () => document.removeEventListener('mousedown', handleClick);
+  }, []);
+
+  const handleSignOut = async () => {
+    setOpen(false);
+    await signOut();
+    router.push('/login');
+  };
+
+  if (!user) {
+    return (
+      <Link href="/login" className={styles.actionBtn} aria-label="Login">
+        <User size={20} />
+      </Link>
+    );
+  }
+
+  const initials = profile?.full_name?.charAt(0).toUpperCase() || user.email?.charAt(0).toUpperCase() || '?';
+
+  return (
+    <div className={styles.accountWrapper} ref={ref}>
+      <button
+        className={styles.avatarBtn}
+        onClick={() => setOpen(!open)}
+        aria-label="Akun"
+      >
+        <div className={styles.avatarCircle}>{initials}</div>
+        <ChevronDown size={14} className={`${styles.chevron} ${open ? styles.chevronOpen : ''}`} />
+      </button>
+
+      {open && (
+        <div className={styles.accountDropdown}>
+          {/* Profile header */}
+          <div className={styles.dropdownProfile}>
+            <div className={styles.dropdownAvatar}>{initials}</div>
+            <div className={styles.dropdownProfileInfo}>
+              <p className={styles.dropdownName}>{profile?.full_name || 'Pengguna'}</p>
+              <p className={styles.dropdownEmail}>{user.email}</p>
+            </div>
+          </div>
+
+          <div className={styles.dropdownDivider} />
+
+          {/* Menu items */}
+          <Link
+            href="/profil"
+            className={styles.dropdownItem}
+            onClick={() => setOpen(false)}
+          >
+            <Package size={16} />
+            <span>Pesanan Saya</span>
+          </Link>
+
+          <div className={styles.dropdownItem} style={{ cursor: 'default' }}>
+            <Wallet size={16} />
+            <span>Wallet</span>
+            <span className={styles.dropdownBadge}>{formatPrice(profile?.saldo || 0)}</span>
+          </div>
+
+          <div className={styles.dropdownDivider} />
+
+          {/* Mulai Berjualan */}
+          <Link
+            href="/jual"
+            className={`${styles.dropdownItem} ${styles.dropdownItemSell}`}
+            onClick={() => setOpen(false)}
+          >
+            <div className={styles.dropdownSellContent}>
+              <div>
+                <p className={styles.dropdownSellTitle}>Mulai Berjualan</p>
+                <p className={styles.dropdownSellSub}>Jual perabot kosmu, dapat uang!</p>
+              </div>
+              <span className={styles.dropdownSellEmoji}>🛋️</span>
+            </div>
+          </Link>
+
+          <div className={styles.dropdownDivider} />
+
+          <Link
+            href="/profil"
+            className={styles.dropdownItem}
+            onClick={() => setOpen(false)}
+          >
+            <Settings size={16} />
+            <span>Pengaturan Profil</span>
+          </Link>
+
+          <button className={`${styles.dropdownItem} ${styles.dropdownItemLogout}`} onClick={handleSignOut}>
+            <LogOut size={16} />
+            <span>Keluar</span>
+          </button>
+        </div>
+      )}
+    </div>
+  );
+}
+
 export function Navbar() {
   const [mobileOpen, setMobileOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const { totalItems } = useCart();
+  const { user, profile, signOut } = useAuth();
   const router = useRouter();
   const pathname = usePathname();
 
@@ -67,18 +292,8 @@ export function Navbar() {
 
           {/* Right Actions */}
           <div className={styles.navActions}>
-            <Link href="/profil" className={styles.actionBtn} aria-label="Profil">
-              <User size={20} />
-            </Link>
-            <button className={styles.actionBtn} aria-label="Wishlist">
-              <Heart size={20} />
-            </button>
-            <Link href="/keranjang" className={styles.actionBtn} aria-label="Keranjang" style={{ position: 'relative' }}>
-              <ShoppingCart size={20} />
-              {totalItems > 0 && (
-                <span className={styles.cartBadge}>{totalItems}</span>
-              )}
-            </Link>
+            <CartDropdown />
+            <AccountDropdown />
             {/* Mobile hamburger */}
             <button
               className={`${styles.actionBtn} ${styles.hamburger}`}
@@ -124,6 +339,16 @@ export function Navbar() {
               </button>
             </form>
 
+            {user && profile && (
+              <div className={styles.mobileProfileCard}>
+                <div className={styles.mobileAvatar}>{profile.full_name?.charAt(0).toUpperCase()}</div>
+                <div>
+                  <p style={{ fontWeight: 700, color: 'white' }}>{profile.full_name}</p>
+                  <p style={{ fontSize: '0.75rem', color: 'rgba(255,255,255,0.6)' }}>{user.email}</p>
+                </div>
+              </div>
+            )}
+
             {NAV_CATEGORIES.map(cat => (
               <Link
                 key={cat.label}
@@ -136,15 +361,30 @@ export function Navbar() {
             ))}
 
             <div className={styles.mobileDivider} />
-            <Link href="/profil" className={styles.mobileCatLink} onClick={() => setMobileOpen(false)}>
-              👤 Profil
-            </Link>
             <Link href="/keranjang" className={styles.mobileCatLink} onClick={() => setMobileOpen(false)}>
               🛒 Keranjang {totalItems > 0 && `(${totalItems})`}
             </Link>
             <Link href="/jual" className={`${styles.mobileCatLink} ${styles.mobileCatLinkSell}`} onClick={() => setMobileOpen(false)}>
-              + Jual Barang
+              🏷️ Mulai Berjualan
             </Link>
+            {user ? (
+              <>
+                <Link href="/profil" className={styles.mobileCatLink} onClick={() => setMobileOpen(false)}>
+                  👤 Profil & Pesanan
+                </Link>
+                <button
+                  className={`${styles.mobileCatLink} ${styles.mobileCatLinkLogout}`}
+                  onClick={async () => { setMobileOpen(false); await signOut(); router.push('/login'); }}
+                  style={{ width: '100%', textAlign: 'left', background: 'none', border: 'none', cursor: 'pointer' }}
+                >
+                  🚪 Keluar
+                </button>
+              </>
+            ) : (
+              <Link href="/login" className={styles.mobileCatLink} onClick={() => setMobileOpen(false)}>
+                🔐 Login
+              </Link>
+            )}
           </div>
         </div>
       )}

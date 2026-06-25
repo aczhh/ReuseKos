@@ -3,7 +3,8 @@
 import { useState, useEffect, useCallback, Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { Search as SearchIcon, SlidersHorizontal, X, ChevronDown } from 'lucide-react';
-import { supabase, Product } from '@/lib/supabase';
+import { databases, DATABASE_ID, PRODUCTS_ID, PROFILES_ID, mapDoc, Product } from '@/lib/appwrite';
+import { Query } from 'appwrite';
 import ProductCard, { ProductCardSkeleton } from '@/components/ProductCard';
 import { PRODUCT_CATEGORIES } from '@/lib/utils';
 import styles from './cari.module.css';
@@ -29,32 +30,57 @@ function CariContent() {
   const [page, setPage] = useState(0);
   const PAGE_SIZE = 10;
 
-  const buildQuery = useCallback(() => {
-    let q = supabase
-      .from('products')
-      .select('*, seller:profiles!products_seller_id_fkey(*)')
-      .eq('is_sold', false)
-      .order('created_at', { ascending: false })
-      .range(page * PAGE_SIZE, (page + 1) * PAGE_SIZE - 1);
+  const buildQueries = useCallback(() => {
+    const queries = [
+      Query.equal('is_sold', false),
+      Query.orderDesc('$createdAt'),
+      Query.limit(PAGE_SIZE),
+      Query.offset(page * PAGE_SIZE)
+    ];
 
-    if (query.trim()) q = q.ilike('title', `%${query.trim()}%`);
-    if (activeCategory) q = q.eq('category', activeCategory);
+    if (query.trim()) queries.push(Query.contains('title', query.trim()));
+    if (activeCategory) queries.push(Query.equal('category', activeCategory));
     const pf = PRICE_FILTERS.find(p => p.label === activePriceFilter);
-    if (pf) q = q.lte('price', pf.max);
+    if (pf) queries.push(Query.lessThanEqual('price', pf.max));
 
-    return q;
+    return queries;
   }, [query, activeCategory, activePriceFilter, page]);
 
   const doSearch = useCallback(async () => {
     setLoading(true);
-    const { data } = await buildQuery();
-    if (page === 0) {
-      setResults((data as Product[]) || []);
-    } else {
-      setResults(prev => [...prev, ...((data as Product[]) || [])]);
+    try {
+      const queries = buildQueries();
+      const response = await databases.listDocuments(DATABASE_ID, PRODUCTS_ID, queries);
+      
+      const fetchedProducts = response.documents.map(doc => mapDoc<Product>(doc));
+
+      // Fetch sellers
+      const sellerIds = [...new Set(fetchedProducts.map(p => p.seller_id))];
+      if (sellerIds.length > 0) {
+        const sellersResponse = await databases.listDocuments(
+          DATABASE_ID,
+          PROFILES_ID,
+          [Query.equal('user_id', sellerIds)]
+        );
+        const sellersMap = new Map();
+        sellersResponse.documents.forEach(doc => {
+          sellersMap.set(doc.user_id, mapDoc(doc));
+        });
+        fetchedProducts.forEach(p => {
+          p.seller = sellersMap.get(p.seller_id);
+        });
+      }
+
+      if (page === 0) {
+        setResults(fetchedProducts);
+      } else {
+        setResults(prev => [...prev, ...fetchedProducts]);
+      }
+    } catch (error) {
+      console.error(error);
     }
     setLoading(false);
-  }, [buildQuery, page]);
+  }, [buildQueries, page]);
 
   useEffect(() => {
     const t = setTimeout(doSearch, 300);

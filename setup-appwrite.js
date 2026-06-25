@@ -1,9 +1,9 @@
 const { Client, Databases, Storage, ID, Permission, Role } = require('node-appwrite');
 
 // Konfigurasi ini harus diisi setelah membuat project di dashboard Appwrite
-const API_ENDPOINT = 'https://cloud.appwrite.io/v1'; // Endpoint Appwrite Cloud
-const PROJECT_ID = 'isi_dengan_project_id_kamu';
-const API_KEY = 'isi_dengan_api_key_kamu'; // Harus punya akses Databases dan Storage (Centang semua permission saat buat API key)
+const API_ENDPOINT = 'https://sgp.cloud.appwrite.io/v1'; // Endpoint Appwrite Cloud
+const PROJECT_ID = '6a3b674f001d52269d60';
+const API_KEY = 'standard_84b1e33dd69025e25916ef940c9069fdb49fe51aad07401e2953a45491c98e5d0fb6437c53d0aac7bdd443549ced9583d0b1dfb0c0195e8f00f1331d71ff3ed4bd92b16d497861b951070e2c0233ce67cf18fb2245aaa93aa492c2b1eb4e5d25df22e6a40f8b61d830e5a9d90e98de1d51862ecf10146860aa2fd55a649dec44'; // Ganti dengan API Key milikmuDatabases dan Storage (Centang semua permission saat buat API key)
 
 const client = new Client()
     .setEndpoint(API_ENDPOINT)
@@ -26,11 +26,15 @@ async function setup() {
 
         // 1. Buat Database
         try {
-            await databases.create(DATABASE_ID, 'ReuseKos DB');
-            console.log('✅ Database berhasil dibuat.');
-        } catch (error) {
-            if (error.code === 409) console.log('⚡ Database sudah ada.');
-            else throw error;
+            await databases.get(DATABASE_ID);
+            console.log('⚡ Database sudah ada.');
+        } catch (err) {
+            if (err.code === 404) {
+                await databases.create(DATABASE_ID, 'ReuseKos DB');
+                console.log('✅ Database berhasil dibuat.');
+            } else {
+                throw err;
+            }
         }
 
         // 2. Buat Collections
@@ -40,17 +44,18 @@ async function setup() {
             { id: TRANSACTIONS_ID, name: 'Transactions' }
         ];
 
-        for (const col of collections) {
+        for (const c of collections) {
             try {
-                // Document level permissions true agar tiap user bisa punya akses eksklusif ke dokumennya
-                await databases.createCollection(DATABASE_ID, col.id, col.name, [
-                    Permission.read(Role.any()), // Siapa saja bisa baca
-                    Permission.create(Role.users()), // Hanya user terdaftar yang bisa buat
-                ], true);
-                console.log(`✅ Collection ${col.name} berhasil dibuat.`);
-            } catch (error) {
-                if (error.code === 409) console.log(`⚡ Collection ${col.name} sudah ada.`);
-                else throw error;
+                await databases.getCollection(DATABASE_ID, c.id);
+                console.log(`⚡ Collection ${c.name} sudah ada.`);
+            } catch (err) {
+                if (err.code === 404) {
+                    await databases.createCollection(DATABASE_ID, c.id, c.name, [
+                        Permission.read(Role.any()), 
+                        Permission.create(Role.users()), 
+                    ], true);
+                    console.log(`✅ Collection ${c.name} berhasil dibuat.`);
+                } else throw err;
             }
         }
 
@@ -74,9 +79,13 @@ async function setup() {
             await databases.createStringAttribute(DATABASE_ID, PRODUCTS_ID, 'description', 5000, true);
             await databases.createIntegerAttribute(DATABASE_ID, PRODUCTS_ID, 'price', true, 0, 100000000);
             await databases.createStringAttribute(DATABASE_ID, PRODUCTS_ID, 'category', 100, true);
-            await databases.createStringAttribute(DATABASE_ID, PRODUCTS_ID, 'image_url', 1000, true);
+            await databases.createStringAttribute(DATABASE_ID, PRODUCTS_ID, 'photos', 1000, true, undefined, true); // array
+            await databases.createStringAttribute(DATABASE_ID, PRODUCTS_ID, 'video_url', 1000, false);
+            await databases.createStringAttribute(DATABASE_ID, PRODUCTS_ID, 'conditions', 255, false, undefined, true); // array
+            await databases.createFloatAttribute(DATABASE_ID, PRODUCTS_ID, 'lat', false);
+            await databases.createFloatAttribute(DATABASE_ID, PRODUCTS_ID, 'lng', false);
+            await databases.createStringAttribute(DATABASE_ID, PRODUCTS_ID, 'address', 1000, false);
             await databases.createBooleanAttribute(DATABASE_ID, PRODUCTS_ID, 'is_sold', false, false);
-            // Relationship manual: string berisi profile ID penjual
             await databases.createStringAttribute(DATABASE_ID, PRODUCTS_ID, 'seller_id', 255, true);
             console.log('✅ Atribut Products dibuat.');
         } catch(e) { console.log('⚡ Atribut Products mungkin sudah ada.'); }
@@ -95,16 +104,18 @@ async function setup() {
         // 6. Buat Storage Bucket
         console.log('⏳ Membuat Storage Bucket...');
         try {
-            await storage.createBucket(BUCKET_ID, 'ReuseKos', [
-                Permission.read(Role.any()), // Semua orang bisa lihat gambar
-                Permission.create(Role.users()), // Hanya user yang bisa upload gambar
-                Permission.update(Role.users()),
-                Permission.delete(Role.users()),
-            ], false, null, null, ['jpg', 'jpeg', 'png', 'webp', 'heic']);
-            console.log('✅ Storage Bucket dibuat.');
-        } catch (error) {
-            if (error.code === 409) console.log('⚡ Storage Bucket sudah ada.');
-            else throw error;
+            await storage.getBucket(BUCKET_ID);
+            console.log('⚡ Storage Bucket sudah ada.');
+        } catch (err) {
+            if (err.code === 404) {
+                await storage.createBucket(BUCKET_ID, 'ReuseKos', [
+                    Permission.read(Role.any()), // Semua orang bisa lihat gambar
+                    Permission.create(Role.users()), // Hanya user yang bisa upload gambar
+                    Permission.update(Role.users()),
+                    Permission.delete(Role.users()),
+                ], false, true, undefined, ['jpg', 'jpeg', 'png', 'webp', 'heic', 'mp4']);
+                console.log('✅ Storage Bucket dibuat.');
+            } else throw err;
         }
 
         console.log('🎉 Setup Selesai! Tunggu sekitar 1-2 menit agar semua atribut tersedia sepenuhnya di database Appwrite.');

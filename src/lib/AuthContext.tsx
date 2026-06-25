@@ -1,7 +1,8 @@
 'use client';
 
-import { createContext, useContext, useEffect, useState, ReactNode } from 'react';
-import { supabase, Profile } from '@/lib/supabase';
+import { createContext, useContext, useEffect, useState, ReactNode, useCallback } from 'react';
+import { Query } from 'appwrite';
+import { account, databases, Profile, DATABASE_ID, PROFILES_ID, mapDoc } from '@/lib/appwrite';
 
 interface AuthContextType {
   user: any | null;
@@ -24,42 +25,53 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [profile, setProfile] = useState<Profile | null>(null);
   const [loading, setLoading] = useState(true);
 
-  const fetchProfile = async (userId: string) => {
-    const { data } = await supabase
-      .from('profiles')
-      .select('*')
-      .eq('user_id', userId)
-      .single();
-    setProfile(data);
-  };
-
-  const refreshProfile = async () => {
-    if (user) await fetchProfile(user.id);
-  };
-
-  useEffect(() => {
-    // Check session
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setUser(session?.user ?? null);
-      if (session?.user) fetchProfile(session.user.id);
-      setLoading(false);
-    });
-
-    // Listen for auth changes
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
-      setUser(session?.user ?? null);
-      if (session?.user) {
-        await fetchProfile(session.user.id);
+  const fetchProfile = useCallback(async (userId: string) => {
+    try {
+      const response = await databases.listDocuments(
+        DATABASE_ID,
+        PROFILES_ID,
+        [Query.equal('user_id', userId), Query.limit(1)]
+      );
+      if (response.documents.length > 0) {
+        setProfile(mapDoc<Profile>(response.documents[0]));
       } else {
         setProfile(null);
       }
-    });
-
-    return () => subscription.unsubscribe();
+    } catch (error) {
+      console.error('Failed to fetch profile', error);
+      setProfile(null);
+    }
   }, []);
 
+  const checkSession = useCallback(async () => {
+    try {
+      const currentUser = await account.get();
+      setUser(currentUser);
+      await fetchProfile(currentUser.$id);
+    } catch (error) {
+      // Not logged in
+      setUser(null);
+      setProfile(null);
+    } finally {
+      setLoading(false);
+    }
+  }, [fetchProfile]);
+
+  const refreshProfile = useCallback(async () => {
+    if (user) await fetchProfile(user.$id);
+    else await checkSession();
+  }, [user, fetchProfile, checkSession]);
+
+  useEffect(() => {
+    checkSession();
+  }, [checkSession]);
+
   const signOut = async () => {
-    await supabase.auth.signOut();
+    try {
+      await account.deleteSession('current');
+    } catch (e) {
+      console.error(e);
+    }
     setUser(null);
     setProfile(null);
   };

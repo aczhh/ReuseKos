@@ -5,7 +5,8 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import Image from 'next/image';
 import { Mail, ArrowRight, ShieldCheck } from 'lucide-react';
-import { supabase } from '@/lib/supabase';
+import { account, databases, DATABASE_ID, PROFILES_ID } from '@/lib/appwrite';
+import { ID, Query } from 'appwrite';
 import styles from '../auth.module.css';
 
 function isValidAcadEmail(email: string): boolean {
@@ -19,6 +20,7 @@ export default function LoginPage() {
   const [error, setError] = useState('');
   const [sent, setSent] = useState(false);
   const [otp, setOtp] = useState(['', '', '', '', '', '']);
+  const [userId, setUserId] = useState('');
 
   const handleSendOtp = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -30,15 +32,13 @@ export default function LoginPage() {
     }
 
     setLoading(true);
-    const { error: authError } = await supabase.auth.signInWithOtp({
-      email,
-      options: { shouldCreateUser: true }
-    });
-
-    if (authError) {
-      setError(authError.message);
-    } else {
+    try {
+      // Use ID.unique() for new users. If the email exists, Appwrite handles it.
+      const sessionToken = await account.createEmailToken(ID.unique(), email);
+      setUserId(sessionToken.userId);
       setSent(true);
+    } catch (authError: any) {
+      setError(authError.message || 'Gagal mengirim kode OTP.');
     }
     setLoading(false);
   };
@@ -73,31 +73,26 @@ export default function LoginPage() {
     }
 
     setLoading(true);
-    const { data, error: verifyError } = await supabase.auth.verifyOtp({
-      email,
-      token,
-      type: 'email',
-    });
+    try {
+      const session = await account.createSession(userId, token);
+      
+      // Check if profile exists
+      const response = await databases.listDocuments(
+        DATABASE_ID, 
+        PROFILES_ID, 
+        [Query.equal('user_id', session.userId), Query.limit(1)]
+      );
 
-    if (verifyError) {
-      setError('Kode salah atau sudah expired. Coba kirim ulang.');
-      setLoading(false);
-      return;
-    }
-
-    // Cek apakah sudah punya profil
-    if (data.user) {
-      const { data: profile } = await supabase
-        .from('profiles')
-        .select('id')
-        .eq('user_id', data.user.id)
-        .single();
-
-      if (profile) {
+      if (response.documents.length > 0) {
+        // Refresh the page context so AuthContext re-reads session, then navigate
+        router.refresh();
         router.push('/beranda');
       } else {
+        router.refresh();
         router.push('/register');
       }
+    } catch (verifyError: any) {
+      setError('Kode salah atau sudah expired. Coba kirim ulang.');
     }
     setLoading(false);
   };

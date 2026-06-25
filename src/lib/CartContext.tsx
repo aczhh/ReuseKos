@@ -1,7 +1,7 @@
 'use client';
 
 import { createContext, useContext, useEffect, useState, ReactNode } from 'react';
-import { Product } from '@/lib/supabase';
+import { Product } from '@/lib/appwrite';
 
 export interface CartItem {
   product: Product;

@@ -1,6 +1,6 @@
 import Link from 'next/link';
 import { MapPin, Video, Heart, GraduationCap } from 'lucide-react';
-import { Product } from '@/lib/supabase';
+import { Product } from '@/lib/appwrite';
 import styles from './ProductCard.module.css';
 
 interface ProductCardProps {

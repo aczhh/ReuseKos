@@ -8,7 +8,8 @@ import {
   Star, GraduationCap, X
 } from 'lucide-react';
 import Link from 'next/link';
-import { supabase, Product } from '@/lib/supabase';
+import { databases, DATABASE_ID, PRODUCTS_ID, PROFILES_ID, mapDoc, Product } from '@/lib/appwrite';
+import { Query } from 'appwrite';
 import { useAuth } from '@/lib/AuthContext';
 import { useCart } from '@/lib/CartContext';
 import styles from './produk.module.css';
@@ -31,22 +32,38 @@ export default function ProductDetailPage() {
 
   useEffect(() => {
     const fetchProduct = async () => {
-      const { data, error } = await supabase
-        .from('products')
-        .select('*, seller:profiles!products_seller_id_fkey(*)')
-        .eq('id', id)
-        .single();
-      if (!error && data) {
-        setProduct(data as Product);
+      try {
+        const prodDoc = await databases.getDocument(DATABASE_ID, PRODUCTS_ID, id);
+        const fetchedProduct = mapDoc<Product>(prodDoc);
+
+        // fetch seller
+        const sellerResponse = await databases.listDocuments(
+          DATABASE_ID, 
+          PROFILES_ID, 
+          [Query.equal('user_id', fetchedProduct.seller_id)]
+        );
+        if (sellerResponse.documents.length > 0) {
+          fetchedProduct.seller = mapDoc(sellerResponse.documents[0]);
+        }
+        setProduct(fetchedProduct);
+
         // fetch other products by same seller
-        const { data: others } = await supabase
-          .from('products')
-          .select('*, seller:profiles!products_seller_id_fkey(*)')
-          .eq('seller_id', (data as Product).seller_id)
-          .neq('id', id)
-          .eq('is_sold', false)
-          .limit(4);
-        setSellerProducts((others as Product[]) || []);
+        const othersResponse = await databases.listDocuments(DATABASE_ID, PRODUCTS_ID, [
+          Query.equal('seller_id', fetchedProduct.seller_id),
+          Query.notEqual('$id', id),
+          Query.equal('is_sold', false),
+          Query.limit(4)
+        ]);
+        const otherProducts = othersResponse.documents.map(doc => mapDoc<Product>(doc));
+        
+        // attach same seller to others
+        if (fetchedProduct.seller) {
+          otherProducts.forEach(p => p.seller = fetchedProduct.seller);
+        }
+        
+        setSellerProducts(otherProducts);
+      } catch (err) {
+        console.error(err);
       }
       setLoading(false);
     };

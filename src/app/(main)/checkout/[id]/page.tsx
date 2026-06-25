@@ -3,7 +3,8 @@
 import { useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { ChevronLeft, Users, Truck, Shield, QrCode, Building2, Wallet, Package } from 'lucide-react';
-import { supabase, Product } from '@/lib/supabase';
+import { databases, DATABASE_ID, PRODUCTS_ID, PROFILES_ID, TRANSACTIONS_ID, mapDoc, Product } from '@/lib/appwrite';
+import { ID, Query } from 'appwrite';
 import { useAuth } from '@/lib/AuthContext';
 import { calculateOngkir, haversineDistance, SPLIT_RATIO } from '@/lib/utils';
 import styles from './checkout.module.css';
@@ -55,12 +56,24 @@ export default function CheckoutPage() {
 
   useEffect(() => {
     const fetchProduct = async () => {
-      const { data } = await supabase
-        .from('products')
-        .select('*, seller:profiles!products_seller_id_fkey(*)')
-        .eq('id', id)
-        .single();
-      setProduct(data as Product);
+      try {
+        const doc = await databases.getDocument(DATABASE_ID, PRODUCTS_ID, id);
+        const fetchedProduct = mapDoc<Product>(doc);
+        
+        // Fetch seller profile
+        const sellerResponse = await databases.listDocuments(
+          DATABASE_ID,
+          PROFILES_ID,
+          [Query.equal('user_id', fetchedProduct.seller_id)]
+        );
+        if (sellerResponse.documents.length > 0) {
+          fetchedProduct.seller = mapDoc(sellerResponse.documents[0]);
+        }
+        
+        setProduct(fetchedProduct);
+      } catch (err) {
+        console.error(err);
+      }
       setLoading(false);
     };
     fetchProduct();
@@ -95,21 +108,24 @@ export default function CheckoutPage() {
     const driverCut = isDelivery ? Math.floor(ongkir * SPLIT_RATIO.driver) : 0;
     const adminCut = total - sellerCut - (isDelivery ? ongkir : 0);
 
-    const { data, error: txErr } = await supabase.from('transactions').insert({
-      buyer_id: user.id,
-      product_id: product.id,
-      delivery_method: isDelivery ? 'deliver' : 'pickup',
-      distance_km: distanceKm,
-      ongkir,
-      total_amount: total,
-      seller_cut: sellerCut,
-      driver_cut: driverCut,
-      admin_cut: adminCut,
-      status: 'pending',
-    }).select().single();
-
-    if (txErr) { setError(txErr.message); setSubmitting(false); return; }
-    router.push(`/pembayaran/${data.id}`);
+    try {
+      const tx = await databases.createDocument(
+        DATABASE_ID,
+        TRANSACTIONS_ID,
+        ID.unique(),
+        {
+          buyer_id: user.$id,
+          product_id: product.id,
+          seller_id: product.seller_id,
+          status: 'pending',
+          amount: total,
+        }
+      );
+      router.push(`/pembayaran/${tx.$id}`);
+    } catch (txErr: any) {
+      setError(txErr.message);
+      setSubmitting(false);
+    }
   };
 
   return (

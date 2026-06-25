@@ -3,7 +3,9 @@
 import { useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { CheckCircle2, Clock, Package, Truck } from 'lucide-react';
-import { supabase, Transaction } from '@/lib/supabase';
+import { databases, DATABASE_ID, TRANSACTIONS_ID, PRODUCTS_ID, PROFILES_ID, mapDoc, Transaction, Product } from '@/lib/appwrite';
+import { Query } from 'appwrite';
+import { SPLIT_RATIO } from '@/lib/utils';
 import { useAuth } from '@/lib/AuthContext';
 
 function formatPrice(n: number) {
@@ -28,12 +30,17 @@ export default function PembayaranPage() {
 
   useEffect(() => {
     const fetch = async () => {
-      const { data } = await supabase
-        .from('transactions')
-        .select('*, product:products(*), buyer:profiles!transactions_buyer_id_fkey(*)')
-        .eq('id', id)
-        .single();
-      setTx(data as Transaction);
+      try {
+        const txDoc = await databases.getDocument(DATABASE_ID, TRANSACTIONS_ID, id);
+        const fetchedTx = mapDoc<Transaction>(txDoc);
+
+        const prodDoc = await databases.getDocument(DATABASE_ID, PRODUCTS_ID, fetchedTx.product_id);
+        fetchedTx.product = mapDoc<Product>(prodDoc);
+
+        setTx(fetchedTx);
+      } catch (error) {
+        console.error(error);
+      }
       setLoading(false);
     };
     fetch();
@@ -42,30 +49,35 @@ export default function PembayaranPage() {
   const handleSimulatePay = async () => {
     if (!tx) return;
     setConfirming(true);
-    await supabase.from('transactions').update({ status: 'paid' }).eq('id', tx.id);
-    await supabase.from('products').update({ is_sold: true }).eq('id', tx.product_id);
+    await databases.updateDocument(DATABASE_ID, TRANSACTIONS_ID, tx.id, { status: 'paid' });
+    await databases.updateDocument(DATABASE_ID, PRODUCTS_ID, tx.product_id, { is_sold: true });
     setTx(prev => prev ? { ...prev, status: 'paid' } : prev);
     setConfirming(false);
   };
 
   const handleConfirmReceived = async () => {
-    if (!tx) return;
+    if (!tx || !tx.product) return;
     setConfirming(true);
-    // Split saldo ke seller
-    const { data: seller } = await supabase
-      .from('profiles')
-      .select('saldo')
-      .eq('user_id', (tx.product as any).seller_id)
-      .single();
+    
+    // Compute seller cut (e.g. 95% of product price)
+    const sellerCut = Math.floor(tx.product.price * SPLIT_RATIO.seller);
+    const adminCut = tx.amount - sellerCut; // MVP approximation
 
-    if (seller) {
-      await supabase
-        .from('profiles')
-        .update({ saldo: (seller.saldo || 0) + tx.seller_cut })
-        .eq('user_id', (tx.product as any).seller_id);
+    // Add saldo to seller
+    const sellerResponse = await databases.listDocuments(
+      DATABASE_ID, 
+      PROFILES_ID, 
+      [Query.equal('user_id', tx.seller_id)]
+    );
+    
+    if (sellerResponse.documents.length > 0) {
+      const sellerProfile = sellerResponse.documents[0];
+      await databases.updateDocument(DATABASE_ID, PROFILES_ID, sellerProfile.$id, { 
+        saldo: (sellerProfile.saldo || 0) + sellerCut 
+      });
     }
 
-    await supabase.from('transactions').update({ status: 'completed' }).eq('id', tx.id);
+    await databases.updateDocument(DATABASE_ID, TRANSACTIONS_ID, tx.id, { status: 'completed' });
     setTx(prev => prev ? { ...prev, status: 'completed' } : prev);
     setConfirming(false);
   };
@@ -80,6 +92,8 @@ export default function PembayaranPage() {
 
   const status = STATUS_MAP[tx.status] || STATUS_MAP.pending;
   const product = tx.product as any;
+  const sellerCut = Math.floor((product?.price || 0) * SPLIT_RATIO.seller);
+  const adminCut = tx.amount - sellerCut;
 
   return (
     <div style={{ minHeight: '100dvh', padding: '24px 16px', paddingTop: 'calc(var(--navbar-height) + 16px)' }}>
@@ -128,7 +142,7 @@ export default function PembayaranPage() {
           WebkitBackgroundClip: 'text',
           WebkitTextFillColor: 'transparent',
         }}>
-          {formatPrice(tx.total_amount)}
+          {formatPrice(tx.amount)}
         </p>
       </div>
 
@@ -192,14 +206,14 @@ export default function PembayaranPage() {
             {confirming ? <span className="spinner" /> : '✅ Pesanan Diterima — Cairkan Dana'}
           </button>
           <p style={{ fontSize: '0.7rem', color: 'var(--text-muted)', marginTop: 8 }}>
-            Penjual mendapat {formatPrice(tx.seller_cut)} • Kas admin {formatPrice(tx.admin_cut)}
+            Penjual mendapat {formatPrice(sellerCut)} • Kas admin {formatPrice(adminCut)}
           </p>
         </div>
       )}
 
       {tx.status === 'completed' && (
         <div className="alert alert-success">
-          <CheckCircle2 size={16} /> Dana sebesar {formatPrice(tx.seller_cut)} telah dikirim ke penjual. Transaksi selesai!
+          <CheckCircle2 size={16} /> Dana sebesar {formatPrice(sellerCut)} telah dikirim ke penjual. Transaksi selesai!
         </div>
       )}
 

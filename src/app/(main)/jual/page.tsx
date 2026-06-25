@@ -6,7 +6,8 @@ import {
   Upload, Video, Check, MapPin, ChevronLeft, ChevronRight,
   X, AlertTriangle, Image as ImageIcon
 } from 'lucide-react';
-import { supabase } from '@/lib/supabase';
+import { databases, storage, DATABASE_ID, PRODUCTS_ID, BUCKET_ID } from '@/lib/appwrite';
+import { ID } from 'appwrite';
 import { useAuth } from '@/lib/AuthContext';
 import { PRODUCT_CATEGORIES, CONDITION_CHECKLIST } from '@/lib/utils';
 import styles from './jual.module.css';
@@ -135,11 +136,9 @@ export default function JualPage() {
 
   const handleBack = () => setStep(s => Math.max(s - 1, 0));
 
-  const uploadFile = async (file: File, path: string) => {
-    const { data, error } = await supabase.storage.from('reusekos').upload(path, file);
-    if (error) throw error;
-    const { data: { publicUrl } } = supabase.storage.from('reusekos').getPublicUrl(path);
-    return publicUrl;
+  const uploadFile = async (file: File) => {
+    const response = await storage.createFile(BUCKET_ID, ID.unique(), file);
+    return storage.getFileView(BUCKET_ID, response.$id).toString();
   };
 
   const handleSubmit = async () => {
@@ -153,39 +152,37 @@ export default function JualPage() {
       // Upload photos
       const photoUrls: string[] = [];
       for (let i = 0; i < form.photos.length; i++) {
-        const url = await uploadFile(
-          form.photos[i],
-          `photos/${user.id}/${Date.now()}_${i}.jpg`
-        );
+        const url = await uploadFile(form.photos[i]);
         photoUrls.push(url);
       }
 
       // Upload video
       let videoUrl: string | null = null;
       if (form.video) {
-        videoUrl = await uploadFile(
-          form.video,
-          `videos/${user.id}/${Date.now()}.mp4`
-        );
+        videoUrl = await uploadFile(form.video);
       }
 
       // Insert product
-      const { error: insertError } = await supabase.from('products').insert({
-        seller_id: user.id,
-        title: form.title.trim(),
-        description: form.description.trim(),
-        price: Number(form.price),
-        category: form.category,
-        photos: photoUrls,
-        video_url: videoUrl,
-        conditions: form.conditions,
-        lat: form.lat,
-        lng: form.lng,
-        address: form.address,
-        is_sold: false,
-      });
+      await databases.createDocument(
+        DATABASE_ID,
+        PRODUCTS_ID,
+        ID.unique(),
+        {
+          seller_id: user.$id,
+          title: form.title.trim(),
+          description: form.description.trim(),
+          price: Number(form.price),
+          category: form.category,
+          photos: photoUrls,
+          video_url: videoUrl,
+          conditions: form.conditions,
+          lat: form.lat,
+          lng: form.lng,
+          address: form.address,
+          is_sold: false,
+        }
+      );
 
-      if (insertError) throw insertError;
       router.push('/beranda');
     } catch (e: any) {
       setError(e.message || 'Terjadi kesalahan');

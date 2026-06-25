@@ -3,7 +3,8 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { User, BookOpen, Phone, ChevronRight } from 'lucide-react';
-import { supabase } from '@/lib/supabase';
+import { databases, DATABASE_ID, PROFILES_ID } from '@/lib/appwrite';
+import { ID } from 'appwrite';
 import { useAuth } from '@/lib/AuthContext';
 import styles from '../auth.module.css';
 
@@ -14,7 +15,7 @@ const roles = [
 
 export default function RegisterPage() {
   const router = useRouter();
-  const { user } = useAuth();
+  const { user, refreshProfile } = useAuth();
   const [step, setStep] = useState(0);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
@@ -58,23 +59,28 @@ export default function RegisterPage() {
     }
 
     setLoading(true);
-    const { error: insertError } = await supabase.from('profiles').insert({
-      user_id: user.id,
-      email: user.email,
-      full_name: form.full_name.trim(),
-      jurusan: form.jurusan.trim(),
-      whatsapp: form.whatsapp.trim(),
-      role: form.role,
-      saldo: 0,
-    });
-
-    if (insertError) {
+    try {
+      await databases.createDocument(
+        DATABASE_ID,
+        PROFILES_ID,
+        ID.unique(),
+        {
+          user_id: user.$id,
+          email: user.email,
+          full_name: form.full_name.trim(),
+          jurusan: form.jurusan.trim(),
+          whatsapp: form.whatsapp.trim(),
+          role: form.role,
+          saldo: 0,
+        }
+      );
+      
+      await refreshProfile();
+      router.push('/beranda');
+    } catch (insertError: any) {
       setError(insertError.message);
       setLoading(false);
-      return;
     }
-
-    router.push('/beranda');
   };
 
   const steps = ['Info Diri', 'Kontak', 'Peranmu'];
