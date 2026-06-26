@@ -2,16 +2,11 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { User, BookOpen, Phone, ChevronRight } from 'lucide-react';
+import { ChevronRight } from 'lucide-react';
 import { databases, DATABASE_ID, PROFILES_ID } from '@/lib/appwrite';
 import { ID } from 'appwrite';
 import { useAuth } from '@/lib/AuthContext';
 import styles from '../auth.module.css';
-
-const roles = [
-  { value: 'buyer', emoji: '🎒', title: 'Maba / Pembeli', desc: 'Cari perabot kos murah' },
-  { value: 'seller', emoji: '🏠', title: 'Kating / Penjual', desc: 'Jual perabot kos lamamu' },
-];
 
 export default function RegisterPage() {
   const router = useRouter();
@@ -23,7 +18,6 @@ export default function RegisterPage() {
     full_name: '',
     jurusan: '',
     whatsapp: '',
-    role: '',
   });
 
   const handleChange = (field: string, value: string) => {
@@ -38,19 +32,13 @@ export default function RegisterPage() {
         return;
       }
     }
-    if (step === 1) {
-      if (!form.whatsapp.trim()) {
-        setError('Nomor WhatsApp wajib diisi');
-        return;
-      }
-    }
     setError('');
     setStep(prev => prev + 1);
   };
 
   const handleSubmit = async () => {
-    if (!form.role) {
-      setError('Pilih peranmu dulu');
+    if (!form.whatsapp.trim()) {
+      setError('Nomor WhatsApp wajib diisi');
       return;
     }
     if (!user) {
@@ -70,11 +58,11 @@ export default function RegisterPage() {
           full_name: form.full_name.trim(),
           jurusan: form.jurusan.trim(),
           whatsapp: form.whatsapp.trim(),
-          role: form.role,
+          role: 'buyer', // Default role, can be upgraded to seller from profile
           saldo: 0,
         }
       );
-      
+
       await refreshProfile();
       router.push('/beranda');
     } catch (insertError: any) {
@@ -83,7 +71,7 @@ export default function RegisterPage() {
     }
   };
 
-  const steps = ['Info Diri', 'Kontak', 'Peranmu'];
+  const steps = ['Info Diri', 'Kontak'];
 
   return (
     <div className={styles.authPage}>
@@ -149,7 +137,7 @@ export default function RegisterPage() {
           </div>
         )}
 
-        {/* Step 1: Kontak */}
+        {/* Step 1: Kontak + Submit */}
         {step === 1 && (
           <div className={styles.formStack}>
             <p className={styles.authCardTitle}>Nomor WhatsApp</p>
@@ -170,41 +158,6 @@ export default function RegisterPage() {
             </div>
             <div style={{ display: 'flex', gap: 8 }}>
               <button className="btn btn-ghost" onClick={() => setStep(0)} style={{ flex: 1 }}>
-                Kembali
-              </button>
-              <button id="btn-next-1" className="btn btn-primary" onClick={handleNext} style={{ flex: 2 }}>
-                Lanjut <ChevronRight size={18} />
-              </button>
-            </div>
-          </div>
-        )}
-
-        {/* Step 2: Role */}
-        {step === 2 && (
-          <div className={styles.formStack}>
-            <p className={styles.authCardTitle}>Kamu siapa?</p>
-            <p className={styles.authCardSubtitle}>
-              Pilih peranmu di ReuseKos
-            </p>
-            <div className={styles.roleGrid}>
-              {roles.map(r => (
-                <button
-                  key={r.value}
-                  id={`role-${r.value}`}
-                  className={`${styles.roleCard} ${form.role === r.value ? styles.selected : ''}`}
-                  onClick={() => handleChange('role', r.value)}
-                >
-                  <span className={styles.roleEmoji}>{r.emoji}</span>
-                  <span className={styles.roleTitle}>{r.title}</span>
-                  <span className={styles.roleDesc}>{r.desc}</span>
-                </button>
-              ))}
-            </div>
-            <p style={{ fontSize: '0.75rem', color: 'var(--text-muted)', textAlign: 'center' }}>
-              Kamu bisa ubah peran kapan saja di Profil
-            </p>
-            <div style={{ display: 'flex', gap: 8 }}>
-              <button className="btn btn-ghost" onClick={() => setStep(1)} style={{ flex: 1 }}>
                 Kembali
               </button>
               <button

@@ -34,7 +34,10 @@ export default function LoginPage() {
     setLoading(true);
     try {
       // Use ID.unique() for new users. If the email exists, Appwrite handles it.
-      const sessionToken = await account.createEmailToken(ID.unique(), email);
+      const sessionToken = await account.createEmailToken({
+        userId: ID.unique(),
+        email: email,
+      });
       setUserId(sessionToken.userId);
       setSent(true);
     } catch (authError: any) {
@@ -74,25 +77,41 @@ export default function LoginPage() {
 
     setLoading(true);
     try {
-      const session = await account.createSession(userId, token);
+      // Delete any active session first so returning users can always log back in
+      try {
+        await account.deleteSession('current');
+      } catch (_) {
+        // Ignore – no session existed, that's fine
+      }
+
+      await account.createSession({
+        userId: userId,
+        secret: token,
+      });
+
+      // Get the actual userId from the newly created session
+      const currentUser = await account.get();
       
-      // Check if profile exists
+      // Check if profile already exists (returning user vs new user)
       const response = await databases.listDocuments(
         DATABASE_ID, 
         PROFILES_ID, 
-        [Query.equal('user_id', session.userId), Query.limit(1)]
+        [Query.equal('user_id', currentUser.$id), Query.limit(1)]
       );
 
       if (response.documents.length > 0) {
-        // Refresh the page context so AuthContext re-reads session, then navigate
+        // Profile exists → already registered, go straight to home
         router.refresh();
         router.push('/beranda');
       } else {
+        // No profile yet → new user, go complete registration
         router.refresh();
         router.push('/register');
       }
     } catch (verifyError: any) {
-      setError('Kode salah atau sudah expired. Coba kirim ulang.');
+      console.error('OTP Verify Error:', verifyError);
+      const msg = verifyError?.message || 'Kode salah atau sudah expired.';
+      setError(`${msg} Coba kirim ulang OTP.`);
     }
     setLoading(false);
   };

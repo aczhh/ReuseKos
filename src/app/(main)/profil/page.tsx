@@ -2,8 +2,8 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { LogOut, Edit2, Package, Wallet, ChevronRight } from 'lucide-react';
-import { databases, DATABASE_ID, TRANSACTIONS_ID, PRODUCTS_ID, mapDoc, Transaction } from '@/lib/appwrite';
+import { LogOut, Edit2, Package, Wallet, ChevronRight, Store, X, CheckCircle } from 'lucide-react';
+import { databases, DATABASE_ID, TRANSACTIONS_ID, PRODUCTS_ID, PROFILES_ID, mapDoc, Transaction } from '@/lib/appwrite';
 import { Query } from 'appwrite';
 import { useAuth } from '@/lib/AuthContext';
 import Link from 'next/link';
@@ -21,11 +21,14 @@ const STATUS_LABEL: Record<string, string> = {
 };
 
 export default function ProfilPage() {
-  const { user, profile, signOut, loading } = useAuth();
+  const { user, profile, signOut, loading, refreshProfile } = useAuth();
   const router = useRouter();
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [txLoading, setTxLoading] = useState(true);
   const [activeTab, setActiveTab] = useState<'beli' | 'jual'>('beli');
+  const [showSellerModal, setShowSellerModal] = useState(false);
+  const [sellerLoading, setSellerLoading] = useState(false);
+  const [sellerSuccess, setSellerSuccess] = useState(false);
 
   useEffect(() => {
     if (!user) return;
@@ -47,16 +50,16 @@ export default function ProfilPage() {
         const productIds = [...new Set(fetchedTxs.map(tx => tx.product_id))];
         if (productIds.length > 0) {
           const productsResponse = await databases.listDocuments(
-            DATABASE_ID, 
-            PRODUCTS_ID, 
+            DATABASE_ID,
+            PRODUCTS_ID,
             [Query.equal('$id', productIds)]
           );
-          
+
           const productsMap = new Map();
           productsResponse.documents.forEach(doc => {
             productsMap.set(doc.$id, mapDoc(doc));
           });
-          
+
           fetchedTxs.forEach(tx => {
             tx.product = productsMap.get(tx.product_id);
           });
@@ -75,6 +78,32 @@ export default function ProfilPage() {
   const handleSignOut = async () => {
     await signOut();
     router.push('/login');
+  };
+
+  const handleBecomeSeller = async () => {
+    if (!profile || !user) return;
+    setSellerLoading(true);
+    try {
+      // Find the profile document ID
+      const response = await databases.listDocuments(
+        DATABASE_ID,
+        PROFILES_ID,
+        [Query.equal('user_id', user.$id), Query.limit(1)]
+      );
+      if (response.documents.length > 0) {
+        const docId = response.documents[0].$id;
+        await databases.updateDocument(DATABASE_ID, PROFILES_ID, docId, { role: 'seller' });
+        await refreshProfile();
+        setSellerSuccess(true);
+        setTimeout(() => {
+          setShowSellerModal(false);
+          setSellerSuccess(false);
+        }, 1800);
+      }
+    } catch (e) {
+      console.error('Failed to update role', e);
+    }
+    setSellerLoading(false);
   };
 
   if (loading) {
@@ -131,7 +160,8 @@ export default function ProfilPage() {
           <Wallet size={20} style={{ color: 'var(--indigo-400)' }} />
           <div style={{ flex: 1 }}>
             <p style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Saldo ReuseKos</p>
-            <p style={{ fontWeight: 800, fontSize: '1.1rem',
+            <p style={{
+              fontWeight: 800, fontSize: '1.1rem',
               background: 'var(--gradient-brand)',
               WebkitBackgroundClip: 'text',
               WebkitTextFillColor: 'transparent',
@@ -142,6 +172,43 @@ export default function ProfilPage() {
           <button className="btn btn-secondary btn-sm">Tarik</button>
         </div>
       </div>
+
+      {/* Mulai Berjualan Card (only for buyers) */}
+      {profile.role === 'buyer' && (
+        <div style={{ padding: '0 16px', marginBottom: 16 }}>
+          <button
+            id="btn-mulai-berjualan"
+            onClick={() => setShowSellerModal(true)}
+            style={{
+              width: '100%',
+              display: 'flex', alignItems: 'center', gap: 14,
+              padding: '16px',
+              background: 'linear-gradient(135deg, rgba(193,68,14,0.12), rgba(99,102,241,0.1))',
+              border: '1.5px solid rgba(193,68,14,0.3)',
+              borderRadius: 'var(--radius-lg)',
+              cursor: 'pointer',
+              transition: 'all var(--transition-fast)',
+              textAlign: 'left',
+            }}
+          >
+            <div style={{
+              width: 44, height: 44, borderRadius: '50%',
+              background: 'linear-gradient(135deg, #c1440e, #e8571a)',
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              flexShrink: 0,
+            }}>
+              <Store size={20} color="white" />
+            </div>
+            <div style={{ flex: 1 }}>
+              <p style={{ fontWeight: 700, fontSize: '0.95rem' }}>Mulai Berjualan 🏷️</p>
+              <p style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginTop: 2 }}>
+                Jual perabot kos lamamu & dapatkan uang
+              </p>
+            </div>
+            <ChevronRight size={18} style={{ color: 'var(--text-muted)' }} />
+          </button>
+        </div>
+      )}
 
       {/* Tab riwayat */}
       <div style={{ padding: '0 16px', marginBottom: 12 }}>
@@ -164,7 +231,7 @@ export default function ProfilPage() {
 
         {txLoading ? (
           <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-            {[1,2,3].map(i => (
+            {[1, 2, 3].map(i => (
               <div key={i} className="skeleton" style={{ height: 64, borderRadius: 'var(--radius-md)' }} />
             ))}
           </div>
@@ -196,7 +263,7 @@ export default function ProfilPage() {
                   </div>
                   <div style={{ textAlign: 'right' }}>
                     <p style={{ fontSize: '0.85rem', fontWeight: 700 }}>
-                      {formatPrice(tx.total_amount)}
+                      {formatPrice(tx.amount)}
                     </p>
                     <ChevronRight size={14} style={{ color: 'var(--text-muted)' }} />
                   </div>
@@ -225,6 +292,85 @@ export default function ProfilPage() {
           <LogOut size={16} /> Keluar
         </button>
       </div>
+
+      {/* Seller Modal */}
+      {showSellerModal && (
+        <div style={{
+          position: 'fixed', inset: 0, zIndex: 999,
+          background: 'rgba(0,0,0,0.6)', backdropFilter: 'blur(4px)',
+          display: 'flex', alignItems: 'flex-end', justifyContent: 'center',
+          padding: '16px',
+        }}>
+          <div style={{
+            background: 'var(--bg-surface)',
+            borderRadius: 'var(--radius-xl) var(--radius-xl) var(--radius-lg) var(--radius-lg)',
+            padding: '28px 24px',
+            width: '100%', maxWidth: 480,
+            animation: 'slideUp 0.25s ease',
+          }}>
+            {sellerSuccess ? (
+              <div style={{ textAlign: 'center', padding: '16px 0' }}>
+                <CheckCircle size={56} style={{ color: '#22c55e', margin: '0 auto 12px' }} />
+                <p style={{ fontWeight: 800, fontSize: '1.2rem' }}>Selamat, kamu jadi Penjual! 🎉</p>
+                <p style={{ color: 'var(--text-muted)', fontSize: '0.875rem', marginTop: 6 }}>
+                  Mulai jual perabot kos lamamu sekarang.
+                </p>
+              </div>
+            ) : (
+              <>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 20 }}>
+                  <div>
+                    <p style={{ fontWeight: 800, fontSize: '1.2rem' }}>Mulai Berjualan 🏷️</p>
+                    <p style={{ color: 'var(--text-muted)', fontSize: '0.875rem', marginTop: 4 }}>
+                      Ubah statusmu jadi Penjual
+                    </p>
+                  </div>
+                  <button
+                    className="btn btn-ghost btn-sm"
+                    onClick={() => setShowSellerModal(false)}
+                    style={{ padding: 6 }}
+                  >
+                    <X size={18} />
+                  </button>
+                </div>
+
+                <div style={{
+                  background: 'var(--bg-card)',
+                  border: '1px solid var(--border)',
+                  borderRadius: 'var(--radius-md)',
+                  padding: '16px',
+                  marginBottom: 20,
+                  display: 'flex', flexDirection: 'column', gap: 10,
+                }}>
+                  {[
+                    { icon: '✅', text: 'Upload dan jual perabot kos lamamu' },
+                    { icon: '💸', text: 'Terima pembayaran langsung ke saldo' },
+                    { icon: '🚛', text: 'Pilih metode pengiriman (antar / ambil sendiri)' },
+                  ].map(item => (
+                    <div key={item.text} style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                      <span style={{ fontSize: '1.2rem' }}>{item.icon}</span>
+                      <p style={{ fontSize: '0.875rem' }}>{item.text}</p>
+                    </div>
+                  ))}
+                </div>
+
+                <button
+                  id="btn-confirm-seller"
+                  className="btn btn-primary btn-full"
+                  onClick={handleBecomeSeller}
+                  disabled={sellerLoading}
+                >
+                  {sellerLoading ? <span className="spinner" /> : 'Jadikan Saya Penjual 🚀'}
+                </button>
+
+                <p style={{ textAlign: 'center', fontSize: '0.75rem', color: 'var(--text-muted)', marginTop: 10 }}>
+                  Kamu masih bisa beli barang sebagai penjual
+                </p>
+              </>
+            )}
+          </div>
+        </div>
+      )}
     </div>
   );
 }
