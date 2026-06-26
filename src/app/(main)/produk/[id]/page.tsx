@@ -5,7 +5,7 @@ import { useRouter, useParams } from 'next/navigation';
 import {
   ChevronLeft, ChevronRight, Video, MapPin,
   MessageCircle, ShoppingCart, Heart, AlertTriangle, Check,
-  Star, GraduationCap, X
+  Star, GraduationCap, X, Edit2, Trash2
 } from 'lucide-react';
 import Link from 'next/link';
 import { databases, DATABASE_ID, PRODUCTS_ID, PROFILES_ID, mapDoc, Product } from '@/lib/appwrite';
@@ -325,7 +325,27 @@ export default function ProductDetailPage() {
             )}
 
             {isMine && (
-              <div className="alert alert-info">Ini iklanmu sendiri</div>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginBottom: 16 }}>
+                <div className="alert alert-info" style={{ marginBottom: 0 }}>Ini iklanmu sendiri</div>
+                <Link href={`/edit-produk/${product.id}`} className={`btn btn-secondary ${styles.ctaBtn}`}>
+                  <Edit2 size={16} /> Edit Barang
+                </Link>
+                <button
+                  className={`btn btn-danger ${styles.ctaBtn}`}
+                  onClick={async () => {
+                    if (window.confirm('Yakin ingin menghapus barang ini? Data tidak bisa dikembalikan.')) {
+                      try {
+                        await databases.deleteDocument(DATABASE_ID, PRODUCTS_ID, product.id);
+                        router.push('/profil');
+                      } catch (e: any) {
+                        alert('Gagal menghapus: ' + e.message);
+                      }
+                    }
+                  }}
+                >
+                  <Trash2 size={16} /> Hapus Barang
+                </button>
+              </div>
             )}
 
             {product.is_sold && (

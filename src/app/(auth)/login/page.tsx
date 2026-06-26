@@ -1,16 +1,31 @@
 'use client';
 
-import { useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { useState, useEffect, Suspense } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import Image from 'next/image';
 import { Mail, ArrowRight, ShieldCheck } from 'lucide-react';
 import { account, databases, DATABASE_ID, PROFILES_ID } from '@/lib/appwrite';
-import { ID, Query } from 'appwrite';
+import { ID, Query, OAuthProvider } from 'appwrite';
 import styles from '../auth.module.css';
 
 function isValidAcadEmail(email: string): boolean {
   return /^[^\s@]+@[^\s@]+\.ac\.id$/.test(email.toLowerCase());
+}
+
+function ErrorHandler({ setError }: { setError: (msg: string) => void }) {
+  const searchParams = useSearchParams();
+
+  useEffect(() => {
+    const errorParam = searchParams.get('error');
+    if (errorParam === 'non_academic') {
+      setError('Akses ditolak: Gunakan email Google kampus yang berakhiran .ac.id');
+    } else if (errorParam === 'failed') {
+      setError('Login Google gagal atau dibatalkan.');
+    }
+  }, [searchParams, setError]);
+
+  return null;
 }
 
 export default function LoginPage() {
@@ -21,6 +36,24 @@ export default function LoginPage() {
   const [sent, setSent] = useState(false);
   const [otp, setOtp] = useState(['', '', '', '', '', '']);
   const [userId, setUserId] = useState('');
+
+  const handleGoogleLogin = async () => {
+    setLoading(true);
+    setError('');
+    try {
+      // Hapus sesi lama jika ada
+      try { await account.deleteSession('current'); } catch (_) { }
+      
+      account.createOAuth2Session(
+        OAuthProvider.Google,
+        `${window.location.origin}/callback`, // Success URL
+        `${window.location.origin}/login?error=failed` // Failure URL
+      );
+    } catch (err: any) {
+      setError('Gagal memulai login Google.');
+      setLoading(false);
+    }
+  };
 
   const handleSendOtp = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -42,6 +75,42 @@ export default function LoginPage() {
       setSent(true);
     } catch (authError: any) {
       setError(authError.message || 'Gagal mengirim kode OTP.');
+    }
+    setLoading(false);
+  };
+
+  const handleDevBypass = async () => {
+    setLoading(true);
+    setError('');
+    try {
+      // Bersihkan sesi lama
+      try { await account.deleteSession('current'); } catch (_) { }
+
+      const devEmail = 'developer@student.ub.ac.id';
+      const devPass = 'rahasia12345';
+
+      // Coba buat akun dev kalau belum ada
+      try {
+        await account.create(ID.unique(), devEmail, devPass);
+      } catch (e: any) {
+        // Abaikan kalau email sudah terdaftar sebelumnya
+      }
+
+      // Buat sesi login tanpa OTP (pakai password khusus dev)
+      await account.createEmailPasswordSession(devEmail, devPass);
+
+      const currentUser = await account.get();
+      const response = await databases.listDocuments(
+        DATABASE_ID,
+        PROFILES_ID,
+        [Query.equal('user_id', currentUser.$id), Query.limit(1)]
+      );
+
+      router.refresh();
+      // Pakai window.location untuk force full reload supaya AuthContext baca sesi baru
+      window.location.href = '/beranda';
+    } catch (err: any) {
+      setError('Bypass Error: ' + (err.message || 'Gagal login bypass'));
     }
     setLoading(false);
   };
@@ -91,22 +160,19 @@ export default function LoginPage() {
 
       // Get the actual userId from the newly created session
       const currentUser = await account.get();
-      
+
       // Check if profile already exists (returning user vs new user)
       const response = await databases.listDocuments(
-        DATABASE_ID, 
-        PROFILES_ID, 
+        DATABASE_ID,
+        PROFILES_ID,
         [Query.equal('user_id', currentUser.$id), Query.limit(1)]
       );
 
+      // Pakai window.location untuk force full reload supaya AuthContext baca sesi baru
       if (response.documents.length > 0) {
-        // Profile exists → already registered, go straight to home
-        router.refresh();
-        router.push('/beranda');
+        window.location.href = '/beranda';
       } else {
-        // No profile yet → new user, go complete registration
-        router.refresh();
-        router.push('/register');
+        window.location.href = '/register';
       }
     } catch (verifyError: any) {
       console.error('OTP Verify Error:', verifyError);
@@ -118,15 +184,19 @@ export default function LoginPage() {
 
   return (
     <div className={styles.authPage}>
+      <Suspense fallback={null}>
+        <ErrorHandler setError={setError} />
+      </Suspense>
+
       <div className={styles.blob1} />
       <div className={styles.blob2} />
 
       <div className={styles.authHeader}>
-        <Image 
-          src="/logo.png" 
-          alt="ReuseKos Logo" 
-          width={286} 
-          height={70} 
+        <Image
+          src="/logo.png"
+          alt="ReuseKos Logo"
+          width={286}
+          height={70}
           className={styles.mainLogo}
           priority
         />
@@ -182,6 +252,32 @@ export default function LoginPage() {
                 )}
               </button>
             </form>
+
+            <div style={{ marginTop: 20, textAlign: 'center' }}>
+              <div style={{ height: 1, backgroundColor: 'var(--border)', margin: '16px 0', position: 'relative' }}>
+                <span style={{ position: 'absolute', top: -10, left: '50%', transform: 'translateX(-50%)', backgroundColor: 'var(--bg-card)', padding: '0 8px', fontSize: '0.75rem', color: 'var(--text-muted)' }}>ATAU</span>
+              </div>
+              
+              <button
+                type="button"
+                onClick={handleGoogleLogin}
+                className={`btn btn-full ${styles.btnGoogle}`}
+                disabled={loading}
+                style={{ marginBottom: '12px' }}
+              >
+                <Image src="https://www.svgrepo.com/show/475656/google-color.svg" alt="Google" width={20} height={20} />
+                Lanjutkan dengan Google
+              </button>
+
+              <button
+                onClick={handleDevBypass}
+                className="btn btn-secondary btn-full btn-sm"
+                disabled={loading}
+                style={{ borderColor: '#6366f1', color: '#6366f1' }}
+              >
+                🛠️ Bypass Login (Dev Mode)
+              </button>
+            </div>
           </>
         ) : (
           <>
@@ -227,7 +323,7 @@ export default function LoginPage() {
             <div className={styles.resendWrapper}>
               <button
                 className="btn btn-ghost btn-sm"
-                onClick={() => { setSent(false); setOtp(['','','','','','']); }}
+                onClick={() => { setSent(false); setOtp(['', '', '', '', '', '']); }}
               >
                 Ganti email / Kirim ulang
               </button>

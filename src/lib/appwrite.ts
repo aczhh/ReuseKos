@@ -1,7 +1,7 @@
 import { Client, Account, Databases, Storage } from 'appwrite';
 
-const appwriteEndpoint = process.env.NEXT_PUBLIC_APPWRITE_ENDPOINT || 'https://cloud.appwrite.io/v1';
-const appwriteProjectId = process.env.NEXT_PUBLIC_APPWRITE_PROJECT_ID || 'placeholder';
+const appwriteEndpoint = process.env.NEXT_PUBLIC_APPWRITE_ENDPOINT || 'https://sgp.cloud.appwrite.io/v1';
+const appwriteProjectId = process.env.NEXT_PUBLIC_APPWRITE_PROJECT_ID || '6a3b674f001d52269d60';
 
 
 const client = new Client()
@@ -33,6 +33,9 @@ export type Profile = {
   whatsapp: string;
   role: 'buyer' | 'seller' | 'driver';
   saldo: number;
+  bank_name: string | null;
+  bank_account: string | null;
+  qris_url: string | null;
   created_at: string; // Mapped from $createdAt
 };
 
@@ -62,6 +65,7 @@ export type Transaction = {
   product?: Product;
   status: 'pending' | 'paid' | 'completed';
   amount: number;
+  delivery_method?: string;
   seller_id: string;
   created_at: string;
 };

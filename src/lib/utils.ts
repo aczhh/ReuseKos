@@ -42,6 +42,7 @@ export const PRODUCT_CATEGORIES = [
 ];
 
 export const CONDITION_CHECKLIST = [
+  'Tidak ada minus / Mulus',
   'Ada lecet/goresan ringan',
   'Ada penyok/tekukan',
   'Warna memudar',

@@ -2,9 +2,9 @@
 
 import Link from 'next/link';
 import Image from 'next/image';
-import { usePathname, useRouter } from 'next/navigation';
+import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import { Search, ShoppingCart, User, Menu, X, Wallet, Package, LogOut, Store, ChevronDown, Settings, Trash2 } from 'lucide-react';
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, Suspense } from 'react';
 import { useCart } from '@/lib/CartContext';
 import { useAuth } from '@/lib/AuthContext';
 import styles from './Navigation.module.css';
@@ -241,6 +241,35 @@ function AccountDropdown() {
   );
 }
 
+function CategoryLinks() {
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
+  const currentCat = searchParams.get('cat');
+
+  let activeCategory = NAV_CATEGORIES[0];
+  if (pathname === '/beranda') {
+    activeCategory = NAV_CATEGORIES[0];
+  } else if (currentCat) {
+    const encoded = encodeURIComponent(currentCat);
+    const match = NAV_CATEGORIES.find(c => c.href.includes(encoded) || c.href.includes(currentCat.replace(' ', '+')));
+    if (match) activeCategory = match;
+  }
+
+  return (
+    <>
+      {NAV_CATEGORIES.map(cat => (
+        <Link
+          key={cat.href + cat.label}
+          href={cat.href}
+          className={`${styles.catLink} ${activeCategory.label === cat.label ? styles.catLinkActive : ''}`}
+        >
+          {cat.label}
+        </Link>
+      ))}
+    </>
+  );
+}
+
 export function Navbar() {
   const [mobileOpen, setMobileOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
@@ -255,8 +284,6 @@ export function Navbar() {
       router.push(`/cari?q=${encodeURIComponent(searchQuery.trim())}`);
     }
   };
-
-  const activeCategory = NAV_CATEGORIES.find(c => pathname === c.href || pathname.startsWith(c.href + '?'));
 
   return (
     <header className={styles.navbar}>
@@ -309,15 +336,13 @@ export function Navbar() {
       {/* Category Nav Bar */}
       <nav className={styles.categoryBar}>
         <div className={styles.categoryBarInner}>
-          {NAV_CATEGORIES.map(cat => (
-            <Link
-              key={cat.href + cat.label}
-              href={cat.href}
-              className={`${styles.catLink} ${activeCategory?.label === cat.label ? styles.catLinkActive : ''}`}
-            >
-              {cat.label}
-            </Link>
-          ))}
+          <Suspense fallback={
+            NAV_CATEGORIES.map(cat => (
+              <span key={cat.label} className={styles.catLink}>{cat.label}</span>
+            ))
+          }>
+            <CategoryLinks />
+          </Suspense>
         </div>
       </nav>
 

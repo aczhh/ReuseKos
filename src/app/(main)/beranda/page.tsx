@@ -19,6 +19,43 @@ const QUICK_CATS = [
   { label: 'Lainnya', icon: '📦', cat: 'Lainnya' },
 ];
 
+// Peta domain email kampus → nama universitas
+const KAMPUS_MAP: Record<string, string> = {
+  'ub.ac.id': 'Universitas Brawijaya, Malang',
+  'student.ub.ac.id': 'Universitas Brawijaya, Malang',
+  'ui.ac.id': 'Universitas Indonesia, Depok',
+  'student.ui.ac.id': 'Universitas Indonesia, Depok',
+  'ugm.ac.id': 'Universitas Gadjah Mada, Yogyakarta',
+  'mail.ugm.ac.id': 'Universitas Gadjah Mada, Yogyakarta',
+  'its.ac.id': 'Institut Teknologi Sepuluh Nopember, Surabaya',
+  'student.its.ac.id': 'Institut Teknologi Sepuluh Nopember, Surabaya',
+  'itb.ac.id': 'Institut Teknologi Bandung, Bandung',
+  'student.itb.ac.id': 'Institut Teknologi Bandung, Bandung',
+  'unair.ac.id': 'Universitas Airlangga, Surabaya',
+  'student.unair.ac.id': 'Universitas Airlangga, Surabaya',
+  'undip.ac.id': 'Universitas Diponegoro, Semarang',
+  'live.undip.ac.id': 'Universitas Diponegoro, Semarang',
+  'unej.ac.id': 'Universitas Jember, Jember',
+  'student.unej.ac.id': 'Universitas Jember, Jember',
+  'uin-malang.ac.id': 'UIN Maulana Malik Ibrahim, Malang',
+  'student.uin-malang.ac.id': 'UIN Maulana Malik Ibrahim, Malang',
+  'umm.ac.id': 'Universitas Muhammadiyah Malang',
+  'webmail.umm.ac.id': 'Universitas Muhammadiyah Malang',
+};
+
+function getUniversitasFromEmail(email?: string | null): string | null {
+  if (!email) return null;
+  const domain = email.split('@')[1]?.toLowerCase();
+  if (!domain) return null;
+  // Cek exact match dulu
+  if (KAMPUS_MAP[domain]) return KAMPUS_MAP[domain];
+  // Cek apakah subdomain dari domain yang dikenal
+  for (const key of Object.keys(KAMPUS_MAP)) {
+    if (domain.endsWith('.' + key) || domain === key) return KAMPUS_MAP[key];
+  }
+  return null;
+}
+
 export default function BerandaPage() {
   const { profile } = useAuth();
   const router = useRouter();
@@ -110,7 +147,7 @@ export default function BerandaPage() {
                   <div className={styles.heroMockupDots}>
                     <span /><span /><span />
                   </div>
-                  <span className={styles.heroMockupTitle}>ReuseKos</span>
+                  <span className={styles.heroMockupTitle}>Rekomendasi</span>
                 </div>
                 <div className={styles.heroMockupBody}>
                   <div className={styles.heroProductPreview}>
@@ -129,13 +166,6 @@ export default function BerandaPage() {
                   </div>
                 </div>
               </div>
-              <div className={styles.verifiedBadge}>
-                <span className={styles.verifiedIcon}>✓</span>
-                <div>
-                  <div className={styles.verifiedTitle}>Verified Student</div>
-                  <div className={styles.verifiedSub}>UB Malang</div>
-                </div>
-              </div>
             </div>
           </div>
         </div>
@@ -146,7 +176,14 @@ export default function BerandaPage() {
         <div className={styles.locationBarInner}>
           <div className={styles.locationInfo}>
             <MapPin size={16} className={styles.locationIcon} />
-            <span>Menampilkan barang di sekitar <strong>Universitas Brawijaya, Malang</strong></span>
+            {(() => {
+              const univ = getUniversitasFromEmail(profile?.email);
+              return univ ? (
+                <span>Menampilkan barang di sekitar <strong>{univ}</strong></span>
+              ) : (
+                <span>Menampilkan barang di sekitar <strong>sekitar kamu</strong></span>
+              );
+            })()}
           </div>
           <form className={styles.miniSearch} onSubmit={handleSearch}>
             <Search size={14} className={styles.miniSearchIcon} />

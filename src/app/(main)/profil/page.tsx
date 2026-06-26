@@ -2,8 +2,8 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { LogOut, Edit2, Package, Wallet, ChevronRight, Store, X, CheckCircle } from 'lucide-react';
-import { databases, DATABASE_ID, TRANSACTIONS_ID, PRODUCTS_ID, PROFILES_ID, mapDoc, Transaction } from '@/lib/appwrite';
+import { LogOut, Edit2, Package, Wallet, ChevronRight, Store, X, CheckCircle, CreditCard, QrCode, Trash2, Eye } from 'lucide-react';
+import { databases, DATABASE_ID, TRANSACTIONS_ID, PRODUCTS_ID, PROFILES_ID, mapDoc, Transaction, Product } from '@/lib/appwrite';
 import { Query } from 'appwrite';
 import { useAuth } from '@/lib/AuthContext';
 import Link from 'next/link';
@@ -25,54 +25,79 @@ export default function ProfilPage() {
   const router = useRouter();
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [txLoading, setTxLoading] = useState(true);
+  const [myProducts, setMyProducts] = useState<Product[]>([]);
+  const [productsLoading, setProductsLoading] = useState(false);
   const [activeTab, setActiveTab] = useState<'beli' | 'jual'>('beli');
   const [showSellerModal, setShowSellerModal] = useState(false);
   const [sellerLoading, setSellerLoading] = useState(false);
   const [sellerSuccess, setSellerSuccess] = useState(false);
+  const [sellerStep, setSellerStep] = useState<'info' | 'payment'>('info');
+  const [paymentMethod, setPaymentMethod] = useState<'bank' | 'qris'>('bank');
+  const [bankName, setBankName] = useState('');
+  const [bankAccount, setBankAccount] = useState('');
+  const [qrisUrl, setQrisUrl] = useState('');
+  const [paymentError, setPaymentError] = useState('');
 
   useEffect(() => {
     if (!user) return;
 
-    const fetchTx = async () => {
-      try {
-        let queries = [Query.orderDesc('$createdAt'), Query.limit(20)];
+    if (activeTab === 'beli') {
+      // Fetch transaksi pembelian
+      const fetchTx = async () => {
+        setTxLoading(true);
+        try {
+          const queries = [
+            Query.orderDesc('$createdAt'),
+            Query.limit(20),
+            Query.equal('buyer_id', user.$id),
+          ];
+          const response = await databases.listDocuments(DATABASE_ID, TRANSACTIONS_ID, queries);
+          const fetchedTxs = response.documents.map(doc => mapDoc<Transaction>(doc));
 
-        if (activeTab === 'beli') {
-          queries.push(Query.equal('buyer_id', user.$id));
-        } else {
-          queries.push(Query.equal('seller_id', user.$id));
+          const productIds = [...new Set(fetchedTxs.map(tx => tx.product_id))];
+          if (productIds.length > 0) {
+            const productsResponse = await databases.listDocuments(
+              DATABASE_ID,
+              PRODUCTS_ID,
+              [Query.equal('$id', productIds)]
+            );
+            const productsMap = new Map();
+            productsResponse.documents.forEach(doc => {
+              productsMap.set(doc.$id, mapDoc(doc));
+            });
+            fetchedTxs.forEach(tx => {
+              tx.product = productsMap.get(tx.product_id);
+            });
+          }
+          setTransactions(fetchedTxs);
+        } catch (error) {
+          console.error('Error fetching transactions', error);
         }
-
-        const response = await databases.listDocuments(DATABASE_ID, TRANSACTIONS_ID, queries);
-        const fetchedTxs = response.documents.map(doc => mapDoc<Transaction>(doc));
-
-        // Fetch related products manually
-        const productIds = [...new Set(fetchedTxs.map(tx => tx.product_id))];
-        if (productIds.length > 0) {
-          const productsResponse = await databases.listDocuments(
+        setTxLoading(false);
+      };
+      fetchTx();
+    } else {
+      // Fetch produk milik user (listing yang dijual)
+      const fetchMyProducts = async () => {
+        setProductsLoading(true);
+        try {
+          const response = await databases.listDocuments(
             DATABASE_ID,
             PRODUCTS_ID,
-            [Query.equal('$id', productIds)]
+            [
+              Query.equal('seller_id', user.$id),
+              Query.orderDesc('$createdAt'),
+              Query.limit(20),
+            ]
           );
-
-          const productsMap = new Map();
-          productsResponse.documents.forEach(doc => {
-            productsMap.set(doc.$id, mapDoc(doc));
-          });
-
-          fetchedTxs.forEach(tx => {
-            tx.product = productsMap.get(tx.product_id);
-          });
+          setMyProducts(response.documents.map(doc => mapDoc<Product>(doc)));
+        } catch (error) {
+          console.error('Error fetching my products', error);
         }
-
-        setTransactions(fetchedTxs);
-      } catch (error) {
-        console.error('Error fetching transactions', error);
-      }
-      setTxLoading(false);
-    };
-
-    fetchTx();
+        setProductsLoading(false);
+      };
+      fetchMyProducts();
+    }
   }, [user, activeTab]);
 
   const handleSignOut = async () => {
@@ -82,9 +107,22 @@ export default function ProfilPage() {
 
   const handleBecomeSeller = async () => {
     if (!profile || !user) return;
+
+    // Validasi payment info
+    if (paymentMethod === 'bank') {
+      if (!bankName.trim() || !bankAccount.trim()) {
+        setPaymentError('Nama bank dan nomor rekening wajib diisi.');
+        return;
+      }
+    } else {
+      if (!qrisUrl.trim()) {
+        setPaymentError('Link/kode QRIS wajib diisi.');
+        return;
+      }
+    }
+    setPaymentError('');
     setSellerLoading(true);
     try {
-      // Find the profile document ID
       const response = await databases.listDocuments(
         DATABASE_ID,
         PROFILES_ID,
@@ -92,16 +130,36 @@ export default function ProfilPage() {
       );
       if (response.documents.length > 0) {
         const docId = response.documents[0].$id;
-        await databases.updateDocument(DATABASE_ID, PROFILES_ID, docId, { role: 'seller' });
+
+        // Coba simpan dengan field payment info dulu
+        try {
+          await databases.updateDocument(DATABASE_ID, PROFILES_ID, docId, {
+            role: 'seller',
+            bank_name: paymentMethod === 'bank' ? bankName.trim() : null,
+            bank_account: paymentMethod === 'bank' ? bankAccount.trim() : null,
+            qris_url: paymentMethod === 'qris' ? qrisUrl.trim() : null,
+          });
+        } catch (fieldErr: any) {
+          // Kalau field payment belum ada di Appwrite, fallback: simpan role saja
+          console.warn('Payment fields not found in schema, saving role only:', fieldErr.message);
+          await databases.updateDocument(DATABASE_ID, PROFILES_ID, docId, {
+            role: 'seller',
+          });
+        }
+
         await refreshProfile();
         setSellerSuccess(true);
         setTimeout(() => {
           setShowSellerModal(false);
           setSellerSuccess(false);
+          setSellerStep('info');
         }, 1800);
+      } else {
+        setPaymentError('Profil tidak ditemukan. Coba logout dan login ulang.');
       }
-    } catch (e) {
+    } catch (e: any) {
       console.error('Failed to update role', e);
+      setPaymentError('Gagal: ' + (e?.message || 'Terjadi kesalahan. Coba lagi.'));
     }
     setSellerLoading(false);
   };
@@ -171,6 +229,54 @@ export default function ProfilPage() {
           </div>
           <button className="btn btn-secondary btn-sm">Tarik</button>
         </div>
+
+        {/* Quick Menu */}
+        <div style={{
+          marginTop: 12,
+          display: 'grid',
+          gridTemplateColumns: profile.role === 'seller' ? 'repeat(3, 1fr)' : 'repeat(2, 1fr)',
+          gap: 8,
+        }}>
+          <button
+            className="btn btn-ghost btn-sm"
+            onClick={() => setActiveTab('beli')}
+            style={{
+              flexDirection: 'column', gap: 4, padding: '10px 8px',
+              background: 'var(--bg-card)', border: '1px solid var(--border)',
+              borderRadius: 'var(--radius-md)',
+            }}
+          >
+            <span style={{ fontSize: '1.2rem' }}>🛍️</span>
+            <span style={{ fontSize: '0.7rem', fontWeight: 600 }}>Pembelian</span>
+          </button>
+          {profile.role === 'seller' && (
+            <button
+              className="btn btn-ghost btn-sm"
+              onClick={() => setActiveTab('jual')}
+              style={{
+                flexDirection: 'column', gap: 4, padding: '10px 8px',
+                background: 'var(--bg-card)', border: '1px solid var(--border)',
+                borderRadius: 'var(--radius-md)',
+              }}
+            >
+              <span style={{ fontSize: '1.2rem' }}>🏷️</span>
+              <span style={{ fontSize: '0.7rem', fontWeight: 600 }}>Jualanku</span>
+            </button>
+          )}
+          <Link
+            href="/jual"
+            className="btn btn-ghost btn-sm"
+            style={{
+              flexDirection: 'column', gap: 4, padding: '10px 8px',
+              background: 'var(--bg-card)', border: '1px solid var(--border)',
+              borderRadius: 'var(--radius-md)',
+              textDecoration: 'none',
+            }}
+          >
+            <span style={{ fontSize: '1.2rem' }}>➕</span>
+            <span style={{ fontSize: '0.7rem', fontWeight: 600 }}>Jual Barang</span>
+          </Link>
+        </div>
       </div>
 
       {/* Mulai Berjualan Card (only for buyers) */}
@@ -213,7 +319,7 @@ export default function ProfilPage() {
       {/* Tab riwayat */}
       <div style={{ padding: '0 16px', marginBottom: 12 }}>
         <p style={{ fontWeight: 700, marginBottom: 12, display: 'flex', alignItems: 'center', gap: 6 }}>
-          <Package size={16} /> Riwayat Transaksi
+          <Package size={16} /> {activeTab === 'beli' ? 'Riwayat Pembelian' : 'Barang Jualanku'}
         </p>
         <div style={{ display: 'flex', gap: 8, marginBottom: 16 }}>
           {(['beli', 'jual'] as const).map(tab => (
@@ -224,61 +330,132 @@ export default function ProfilPage() {
               onClick={() => setActiveTab(tab)}
               style={{ flex: 1 }}
             >
-              {tab === 'beli' ? '🛍️ Pembelian' : '🏷️ Penjualan'}
+              {tab === 'beli' ? '🛍️ Pembelian' : '🏷️ Jualanku'}
             </button>
           ))}
         </div>
 
-        {txLoading ? (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-            {[1, 2, 3].map(i => (
-              <div key={i} className="skeleton" style={{ height: 64, borderRadius: 'var(--radius-md)' }} />
-            ))}
-          </div>
-        ) : transactions.length > 0 ? (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-            {transactions.map(tx => {
-              const product = tx.product as any;
-              return (
-                <Link
-                  href={`/pembayaran/${tx.id}`}
-                  key={tx.id}
+        {activeTab === 'beli' ? (
+          // --- TAB BELI: riwayat transaksi ---
+          txLoading ? (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+              {[1, 2, 3].map(i => (
+                <div key={i} className="skeleton" style={{ height: 64, borderRadius: 'var(--radius-md)' }} />
+              ))}
+            </div>
+          ) : transactions.length > 0 ? (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+              {transactions.map(tx => {
+                const product = tx.product as any;
+                return (
+                  <Link
+                    href={`/pembayaran/${tx.id}`}
+                    key={tx.id}
+                    style={{
+                      display: 'flex', alignItems: 'center', gap: 12,
+                      padding: '12px 14px',
+                      background: 'var(--bg-card)',
+                      border: '1px solid var(--border)',
+                      borderRadius: 'var(--radius-md)',
+                      transition: 'all var(--transition-fast)',
+                    }}
+                  >
+                    <div style={{ fontSize: '1.5rem' }}>🛋️</div>
+                    <div style={{ flex: 1 }}>
+                      <p style={{ fontSize: '0.875rem', fontWeight: 600 }}>
+                        {product?.title || 'Produk'}
+                      </p>
+                      <p style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginTop: 2 }}>
+                        {STATUS_LABEL[tx.status]}
+                      </p>
+                    </div>
+                    <div style={{ textAlign: 'right' }}>
+                      <p style={{ fontSize: '0.85rem', fontWeight: 700 }}>
+                        {formatPrice(tx.amount)}
+                      </p>
+                      <ChevronRight size={14} style={{ color: 'var(--text-muted)' }} />
+                    </div>
+                  </Link>
+                );
+              })}
+            </div>
+          ) : (
+            <div className="empty-state">
+              <div className="empty-state-icon">📭</div>
+              <p style={{ fontWeight: 600 }}>Belum ada pembelian</p>
+              <p style={{ fontSize: '0.8rem' }}>Yuk cari perabot kos!</p>
+            </div>
+          )
+        ) : (
+          // --- TAB JUAL: listing produk milik user ---
+          productsLoading ? (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+              {[1, 2, 3].map(i => (
+                <div key={i} className="skeleton" style={{ height: 64, borderRadius: 'var(--radius-md)' }} />
+              ))}
+            </div>
+          ) : myProducts.length > 0 ? (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+              {myProducts.map(p => (
+                <div
+                  key={p.id}
                   style={{
                     display: 'flex', alignItems: 'center', gap: 12,
                     padding: '12px 14px',
                     background: 'var(--bg-card)',
                     border: '1px solid var(--border)',
                     borderRadius: 'var(--radius-md)',
-                    transition: 'all var(--transition-fast)',
+                    opacity: p.is_sold ? 0.6 : 1,
                   }}
                 >
-                  <div style={{ fontSize: '1.5rem' }}>🛋️</div>
+                  <div style={{ fontSize: '1.5rem' }}>
+                    {p.photos?.[0]
+                      ? <img src={p.photos[0]} alt={p.title} style={{ width: 40, height: 40, borderRadius: 8, objectFit: 'cover' }} />
+                      : '🛋️'
+                    }
+                  </div>
                   <div style={{ flex: 1 }}>
-                    <p style={{ fontSize: '0.875rem', fontWeight: 600 }}>
-                      {product?.title || 'Produk'}
-                    </p>
+                    <p style={{ fontSize: '0.875rem', fontWeight: 600 }}>{p.title}</p>
                     <p style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginTop: 2 }}>
-                      {STATUS_LABEL[tx.status]}
+                      {p.is_sold ? '✅ Terjual' : '🟢 Aktif dijual'} • {formatPrice(p.price)}
                     </p>
                   </div>
-                  <div style={{ textAlign: 'right' }}>
-                    <p style={{ fontSize: '0.85rem', fontWeight: 700 }}>
-                      {formatPrice(tx.amount)}
-                    </p>
-                    <ChevronRight size={14} style={{ color: 'var(--text-muted)' }} />
+                  <div style={{ display: 'flex', gap: 6 }}>
+                    <Link href={`/produk/${p.id}`} className="btn btn-ghost btn-sm" style={{ padding: 6 }}>
+                      <Eye size={16} />
+                    </Link>
+                    <Link href={`/edit-produk/${p.id}`} className="btn btn-ghost btn-sm" style={{ padding: 6 }}>
+                      <Edit2 size={16} />
+                    </Link>
+                    <button
+                      className="btn btn-ghost btn-sm"
+                      style={{ padding: 6, color: 'var(--red-500)' }}
+                      onClick={async () => {
+                        if (window.confirm('Yakin ingin menghapus barang ini?')) {
+                          try {
+                            await databases.deleteDocument(DATABASE_ID, PRODUCTS_ID, p.id);
+                            setMyProducts(prev => prev.filter(x => x.id !== p.id));
+                          } catch (e: any) {
+                            alert('Gagal menghapus: ' + e.message);
+                          }
+                        }
+                      }}
+                    >
+                      <Trash2 size={16} />
+                    </button>
                   </div>
-                </Link>
-              );
-            })}
-          </div>
-        ) : (
-          <div className="empty-state">
-            <div className="empty-state-icon">📭</div>
-            <p style={{ fontWeight: 600 }}>Belum ada transaksi</p>
-            <p style={{ fontSize: '0.8rem' }}>
-              {activeTab === 'beli' ? 'Yuk cari perabot kos!' : 'Buka lapak sekarang!'}
-            </p>
-          </div>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <div className="empty-state">
+              <div className="empty-state-icon">🏷️</div>
+              <p style={{ fontWeight: 600 }}>Belum ada barang dijual</p>
+              <Link href="/jual" className="btn btn-primary btn-sm" style={{ marginTop: 8 }}>
+                + Jual Sekarang
+              </Link>
+            </div>
+          )
         )}
       </div>
 
@@ -316,8 +493,9 @@ export default function ProfilPage() {
                   Mulai jual perabot kos lamamu sekarang.
                 </p>
               </div>
-            ) : (
+            ) : sellerStep === 'info' ? (
               <>
+                {/* Step 1: Info manfaat */}
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 20 }}>
                   <div>
                     <p style={{ fontWeight: 800, fontSize: '1.2rem' }}>Mulai Berjualan 🏷️</p>
@@ -327,7 +505,7 @@ export default function ProfilPage() {
                   </div>
                   <button
                     className="btn btn-ghost btn-sm"
-                    onClick={() => setShowSellerModal(false)}
+                    onClick={() => { setShowSellerModal(false); setSellerStep('info'); }}
                     style={{ padding: 6 }}
                   >
                     <X size={18} />
@@ -355,6 +533,97 @@ export default function ProfilPage() {
                 </div>
 
                 <button
+                  className="btn btn-primary btn-full"
+                  onClick={() => setSellerStep('payment')}
+                >
+                  Lanjut &rarr;
+                </button>
+
+                <p style={{ textAlign: 'center', fontSize: '0.75rem', color: 'var(--text-muted)', marginTop: 10 }}>
+                  Kamu masih bisa beli barang sebagai penjual
+                </p>
+              </>
+            ) : (
+              <>
+                {/* Step 2: Info pembayaran */}
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 20 }}>
+                  <div>
+                    <p style={{ fontWeight: 800, fontSize: '1.2rem' }}>Info Pembayaran 💳</p>
+                    <p style={{ color: 'var(--text-muted)', fontSize: '0.875rem', marginTop: 4 }}>
+                      Pembeli akan transfer ke rekening ini
+                    </p>
+                  </div>
+                  <button
+                    className="btn btn-ghost btn-sm"
+                    onClick={() => setSellerStep('info')}
+                    style={{ padding: 6 }}
+                  >
+                    <X size={18} />
+                  </button>
+                </div>
+
+                {/* Toggle Bank / QRIS */}
+                <div style={{ display: 'flex', gap: 8, marginBottom: 20 }}>
+                  <button
+                    className={`btn btn-sm ${paymentMethod === 'bank' ? 'btn-primary' : 'btn-ghost'}`}
+                    onClick={() => setPaymentMethod('bank')}
+                    style={{ flex: 1, gap: 6 }}
+                  >
+                    <CreditCard size={14} /> Rekening Bank
+                  </button>
+                  <button
+                    className={`btn btn-sm ${paymentMethod === 'qris' ? 'btn-primary' : 'btn-ghost'}`}
+                    onClick={() => setPaymentMethod('qris')}
+                    style={{ flex: 1, gap: 6 }}
+                  >
+                    <QrCode size={14} /> QRIS
+                  </button>
+                </div>
+
+                {paymentError && (
+                  <div className="alert alert-error" style={{ marginBottom: 12 }}>{paymentError}</div>
+                )}
+
+                {paymentMethod === 'bank' ? (
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: 12, marginBottom: 20 }}>
+                    <div className="form-group">
+                      <label className="form-label">Nama Bank</label>
+                      <input
+                        className="form-input"
+                        placeholder="Contoh: BCA, BNI, Mandiri, BSI..."
+                        value={bankName}
+                        onChange={e => { setBankName(e.target.value); setPaymentError(''); }}
+                      />
+                    </div>
+                    <div className="form-group">
+                      <label className="form-label">Nomor Rekening</label>
+                      <input
+                        className="form-input"
+                        placeholder="Contoh: 1234567890"
+                        inputMode="numeric"
+                        value={bankAccount}
+                        onChange={e => { setBankAccount(e.target.value); setPaymentError(''); }}
+                      />
+                    </div>
+                  </div>
+                ) : (
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: 12, marginBottom: 20 }}>
+                    <div className="form-group">
+                      <label className="form-label">Nama / ID QRIS</label>
+                      <input
+                        className="form-input"
+                        placeholder="Contoh: nama-qris atau link gambar QRIS kamu"
+                        value={qrisUrl}
+                        onChange={e => { setQrisUrl(e.target.value); setPaymentError(''); }}
+                      />
+                    </div>
+                    <p style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>
+                      💡 Masukkan nama QRIS atau link gambar QRIS milikmu (GoPay, OVO, Dana, dll)
+                    </p>
+                  </div>
+                )}
+
+                <button
                   id="btn-confirm-seller"
                   className="btn btn-primary btn-full"
                   onClick={handleBecomeSeller}
@@ -364,7 +633,7 @@ export default function ProfilPage() {
                 </button>
 
                 <p style={{ textAlign: 'center', fontSize: '0.75rem', color: 'var(--text-muted)', marginTop: 10 }}>
-                  Kamu masih bisa beli barang sebagai penjual
+                  Info rekening bisa diubah nanti di pengaturan profil
                 </p>
               </>
             )}

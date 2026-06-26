@@ -1,4 +1,4 @@
-/* Auth Layout */
+﻿/* Auth Layout */
 .authPage {
   min-height: 100dvh;
   display: flex;
@@ -225,26 +225,3 @@
   flex: 1;
 }
 
-/* Google Button */
-.btnGoogle {
-  background-color: var(--bg-surface);
-  border: 1px solid var(--border);
-  color: var(--text-primary);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-  transition: all var(--transition-fast);
-  font-weight: 500;
-  padding: 12px 16px;
-  border-radius: var(--radius-md);
-  cursor: pointer;
-  font-size: 0.9rem;
-}
-
-.btnGoogle:hover:not(:disabled) {
-  background-color: var(--bg-card-hover);
-  border-color: var(--border-light);
-  transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-}

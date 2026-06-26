@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useRef, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, useParams } from 'next/navigation';
 import {
   Upload, Video, Check, MapPin, ChevronLeft, ChevronRight,
   X, AlertTriangle, Image as ImageIcon, CreditCard, QrCode
@@ -10,7 +10,7 @@ import { databases, storage, DATABASE_ID, PRODUCTS_ID, BUCKET_ID, PROFILES_ID } 
 import { ID } from 'appwrite';
 import { useAuth } from '@/lib/AuthContext';
 import { PRODUCT_CATEGORIES, CONDITION_CHECKLIST } from '@/lib/utils';
-import styles from './jual.module.css';
+import styles from '../../jual/jual.module.css';
 
 const STEPS = ['Info Barang', 'Foto & Video', 'Kondisi', 'Lokasi', 'Rekening'];
 
@@ -33,8 +33,9 @@ interface FormData {
   qrisUrl: string;
 }
 
-export default function JualPage() {
+export default function EditProductPage() {
   const router = useRouter();
+  const { id } = useParams<{ id: string }>();
   const { user, profile } = useAuth();
   const [step, setStep] = useState(0);
   const [loading, setLoading] = useState(false);
@@ -58,6 +59,30 @@ export default function JualPage() {
       }
     }
   }, [profile]);
+
+  useEffect(() => {
+    const fetchProduct = async () => {
+      try {
+        const doc = await databases.getDocument(DATABASE_ID, PRODUCTS_ID, id);
+        setForm(prev => ({
+          ...prev,
+          title: doc.title,
+          description: doc.description,
+          price: doc.price.toString(),
+          category: doc.category,
+          photoUrls: doc.photos || [],
+          videoUrl: doc.video_url || null,
+          conditions: doc.conditions || [],
+          lat: doc.lat,
+          lng: doc.lng,
+          address: doc.address,
+        }));
+      } catch (e) {
+        console.error('Failed to fetch product', e);
+      }
+    };
+    if (id) fetchProduct();
+  }, [id]);
 
   const progressPercent = ((step + 1) / STEPS.length) * 100;
 
@@ -140,7 +165,7 @@ export default function JualPage() {
       if (!form.description.trim()) { setError('Deskripsi wajib diisi'); return false; }
     }
     if (step === 1) {
-      if (form.photos.length === 0) { setError('Upload minimal 1 foto'); return false; }
+      if (form.photoUrls.length === 0) { setError('Upload minimal 1 foto'); return false; }
       if (!form.videoUrl && !form.video) { setError('Upload video wajib (maks 10 detik)'); return false; }
     }
     if (step === 2) {
@@ -181,36 +206,41 @@ export default function JualPage() {
 
     try {
       // Upload photos
-      const photoUrls: string[] = [];
+      const uploadedPhotos: string[] = [];
       for (let i = 0; i < form.photos.length; i++) {
         const url = await uploadFile(form.photos[i]);
-        photoUrls.push(url);
+        uploadedPhotos.push(url);
       }
+      
+      const finalPhotoUrls = form.photoUrls.map(url => {
+        if (url.startsWith('blob:')) {
+          return uploadedPhotos.shift() as string;
+        }
+        return url;
+      });
 
       // Upload video
-      let videoUrl: string | null = null;
+      let finalVideoUrl = form.videoUrl;
       if (form.video) {
-        videoUrl = await uploadFile(form.video);
+        finalVideoUrl = await uploadFile(form.video);
       }
 
-      // Insert product
-      await databases.createDocument(
+      // Update product
+      await databases.updateDocument(
         DATABASE_ID,
         PRODUCTS_ID,
-        ID.unique(),
+        id,
         {
-          seller_id: user.$id,
           title: form.title.trim(),
           description: form.description.trim(),
           price: Number(form.price),
           category: form.category,
-          photos: photoUrls,
-          video_url: videoUrl,
+          photos: finalPhotoUrls,
+          video_url: finalVideoUrl,
           conditions: form.conditions,
           lat: form.lat,
           lng: form.lng,
           address: form.address,
-          is_sold: false,
         }
       );
 
@@ -241,7 +271,7 @@ export default function JualPage() {
     <div className={styles.page}>
       {/* Header */}
       <div className={styles.header}>
-        <h1 className={styles.headerTitle}>🏷️ Buka Lapak</h1>
+        <h1 className={styles.headerTitle}>🏷️ Edit Barang</h1>
         <p className={styles.headerSub}>Langkah {step + 1} dari {STEPS.length}: <strong>{STEPS[step]}</strong></p>
       </div>
 
@@ -591,7 +621,7 @@ export default function JualPage() {
             disabled={loading}
             style={{ flex: 2 }}
           >
-            {loading ? <span className="spinner" /> : '🚀 Pasang Iklan!'}
+            {loading ? <span className="spinner" /> : '💾 Simpan Perubahan'}
           </button>
         )}
       </div>
