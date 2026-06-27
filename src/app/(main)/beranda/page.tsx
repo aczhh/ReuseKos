@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
-import { Search, ChevronRight, MapPin, Shield } from 'lucide-react';
+import { ChevronRight, MapPin, Shield } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { databases, DATABASE_ID, PRODUCTS_ID, PROFILES_ID, mapDoc, Product } from '@/lib/appwrite';
@@ -182,7 +182,7 @@ export default function BerandaPage() {
         </div>
       </section>
 
-      {/* ===== LOCATION + SEARCH BAR ===== */}
+      {/* ===== LOCATION BAR ===== */}
       <section className={styles.locationBar}>
         <div className={styles.locationBarInner}>
           <div className={styles.locationInfo}>
@@ -196,16 +196,6 @@ export default function BerandaPage() {
               );
             })()}
           </div>
-          <form className={styles.miniSearch} onSubmit={handleSearch}>
-            <Search size={14} className={styles.miniSearchIcon} />
-            <input
-              type="search"
-              className={styles.miniSearchInput}
-              placeholder="Cari meja, kursi, atau alat masak..."
-              value={search}
-              onChange={e => setSearch(e.target.value)}
-            />
-          </form>
         </div>
       </section>
 
@@ -299,30 +289,32 @@ export default function BerandaPage() {
         </div>
       </section>
 
-      {/* ===== VERIFICATION CTA ===== */}
-      <section className={styles.verifSection}>
-        <div className={styles.sectionInner}>
-          <div className={styles.verifCard}>
-            <div className={styles.verifIcon}>
-              <Shield size={28} />
-            </div>
-            <div className={styles.verifContent}>
-              <h3 className={styles.verifTitle}>Verifikasi Email Kampusmu!</h3>
-              <p className={styles.verifDesc}>
-                Dapatkan akses eksklusif ke harga khusus mahasiswa dan fitur &quot;Bayar di Tempat&quot; dengan memverifikasi email <strong>.edu</strong> atau <strong>.ac.id</strong> milikmu.
-              </p>
-              <div className={styles.verifActions}>
-                <Link href="/login" className="btn btn-primary">
-                  Verifikasi Sekarang
-                </Link>
-                <button className="btn btn-ghost">
-                  Pelajari Lebih Lanjut
-                </button>
+      {/* ===== VERIFICATION CTA — hanya tampil saat belum login ===== */}
+      {!user && (
+        <section className={styles.verifSection}>
+          <div className={styles.sectionInner}>
+            <div className={styles.verifCard}>
+              <div className={styles.verifIcon}>
+                <Shield size={28} />
+              </div>
+              <div className={styles.verifContent}>
+                <h3 className={styles.verifTitle}>Verifikasi Email Kampusmu!</h3>
+                <p className={styles.verifDesc}>
+                  Dapatkan akses eksklusif ke harga khusus mahasiswa dan fitur &quot;Bayar di Tempat&quot; dengan memverifikasi email <strong>.edu</strong> atau <strong>.ac.id</strong> milikmu.
+                </p>
+                <div className={styles.verifActions}>
+                  <Link href="/login" className="btn btn-primary">
+                    Verifikasi Sekarang
+                  </Link>
+                  <button className="btn btn-ghost">
+                    Pelajari Lebih Lanjut
+                  </button>
+                </div>
               </div>
             </div>
           </div>
-        </div>
-      </section>
+        </section>
+      )}
     </div>
   );
 }

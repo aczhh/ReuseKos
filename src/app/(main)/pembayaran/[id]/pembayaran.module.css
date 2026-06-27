@@ -1,0 +1,290 @@
+/* ===========================
+   PAGE LAYOUT
+=========================== */
+.page {
+  min-height: 100dvh;
+  padding-top: var(--navbar-height);
+  background: var(--bg-base);
+}
+
+.inner {
+  max-width: 680px;
+  margin: 0 auto;
+  padding: 32px var(--content-padding) 60px;
+}
+
+/* ===========================
+   STATUS CARD
+=========================== */
+.statusCard {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-xl);
+  padding: 36px 28px;
+  text-align: center;
+  margin-bottom: 20px;
+}
+
+.statusIconWrap {
+  width: 72px;
+  height: 72px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 20px;
+}
+
+.statusTitle {
+  font-size: 1.35rem;
+  font-weight: 800;
+  margin-bottom: 6px;
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  color: var(--text-primary);
+}
+
+.statusTxId {
+  font-size: 0.8rem;
+  color: var(--text-muted);
+  font-family: monospace;
+  background: var(--bg-surface);
+  padding: 4px 10px;
+  border-radius: var(--radius-sm);
+  display: inline-block;
+  margin-top: 4px;
+}
+
+/* ===========================
+   PRODUCT CARD
+=========================== */
+.productCard {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-xl);
+  padding: 20px;
+  margin-bottom: 16px;
+  display: flex;
+  gap: 16px;
+  align-items: center;
+}
+
+.productImgWrap {
+  width: 72px;
+  height: 72px;
+  background: var(--bg-surface);
+  border-radius: var(--radius-lg);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 2rem;
+  flex-shrink: 0;
+  overflow: hidden;
+  border: 1px solid var(--border);
+}
+
+.productImgWrap img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.productInfo {
+  flex: 1;
+  min-width: 0;
+}
+
+.productTitle {
+  font-weight: 700;
+  font-size: 0.95rem;
+  color: var(--text-primary);
+  margin-bottom: 6px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.productMeta {
+  font-size: 0.8rem;
+  color: var(--text-muted);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.productPrice {
+  font-weight: 800;
+  font-size: 1.1rem;
+  background: var(--gradient-brand);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  flex-shrink: 0;
+}
+
+/* ===========================
+   ACTION CARD (Pembayaran / Konfirmasi)
+=========================== */
+.actionCard {
+  border-radius: var(--radius-xl);
+  padding: 24px;
+  margin-bottom: 16px;
+}
+
+.actionCard.pending {
+  background: linear-gradient(135deg, rgba(99, 102, 241, 0.06), rgba(193, 68, 14, 0.05));
+  border: 1px solid rgba(99, 102, 241, 0.2);
+}
+
+.actionCard.paid {
+  background: rgba(16, 185, 129, 0.06);
+  border: 1px solid rgba(16, 185, 129, 0.2);
+}
+
+.actionCardTitle {
+  font-weight: 700;
+  font-size: 1rem;
+  margin-bottom: 4px;
+  color: var(--text-primary);
+}
+
+.actionCardDesc {
+  font-size: 0.82rem;
+  color: var(--text-muted);
+  margin-bottom: 20px;
+  line-height: 1.5;
+}
+
+/* Payment method chips */
+.paymentChips {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-bottom: 20px;
+}
+
+.paymentChip {
+  padding: 6px 14px;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: var(--text-secondary);
+  letter-spacing: 0.02em;
+}
+
+.actionBtn {
+  width: 100%;
+  padding: 14px;
+  border: none;
+  border-radius: var(--radius-lg);
+  font-size: 0.95rem;
+  font-weight: 700;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  transition: all var(--transition-base);
+}
+
+.actionBtn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.actionBtnPrimary {
+  background: var(--gradient-brand);
+  color: white;
+}
+
+.actionBtnPrimary:hover:not(:disabled) {
+  opacity: 0.9;
+  transform: translateY(-1px);
+  box-shadow: 0 6px 20px rgba(45, 90, 64, 0.3);
+}
+
+.actionBtnSuccess {
+  background: #059669;
+  color: white;
+}
+
+.actionBtnSuccess:hover:not(:disabled) {
+  background: #047857;
+  transform: translateY(-1px);
+  box-shadow: 0 6px 20px rgba(5, 150, 105, 0.3);
+}
+
+.splitInfo {
+  text-align: center;
+  font-size: 0.72rem;
+  color: var(--text-muted);
+  margin-top: 10px;
+}
+
+/* ===========================
+   SUCCESS ALERT
+=========================== */
+.successAlert {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 16px 20px;
+  background: rgba(16, 185, 129, 0.08);
+  border: 1px solid rgba(16, 185, 129, 0.25);
+  border-radius: var(--radius-xl);
+  margin-bottom: 16px;
+  font-size: 0.875rem;
+  color: var(--text-primary);
+}
+
+.successAlertIcon {
+  color: #10b981;
+  flex-shrink: 0;
+}
+
+/* ===========================
+   BACK BUTTON
+=========================== */
+.backBtn {
+  width: 100%;
+  padding: 13px;
+  background: var(--bg-surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  margin-top: 4px;
+}
+
+.backBtn:hover {
+  background: var(--bg-card);
+  border-color: var(--border-medium);
+  color: var(--text-primary);
+}
+
+/* ===========================
+   RESPONSIVE
+=========================== */
+@media (max-width: 480px) {
+  .inner {
+    padding: 20px var(--content-padding) 40px;
+  }
+
+  .statusCard {
+    padding: 28px 20px;
+  }
+
+  .productCard {
+    gap: 12px;
+  }
+
+  .productImgWrap {
+    width: 56px;
+    height: 56px;
+    font-size: 1.5rem;
+  }
+}
