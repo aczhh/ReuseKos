@@ -162,9 +162,6 @@ export default function ProductDetailPage() {
             <div className={styles.mainPhoto}>
               {/* Badges on photo */}
               <div className={styles.photoBadges}>
-                <span className={styles.verifiedBadge}>
-                  <GraduationCap size={10} /> Verified Alumni
-                </span>
                 <span className={styles.distanceBadge}>
                   <MapPin size={10} /> 0.4 mi away
                 </span>

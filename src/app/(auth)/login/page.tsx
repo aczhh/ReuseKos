@@ -79,42 +79,6 @@ export default function LoginPage() {
     setLoading(false);
   };
 
-  const handleDevBypass = async () => {
-    setLoading(true);
-    setError('');
-    try {
-      // Bersihkan sesi lama
-      try { await account.deleteSession('current'); } catch (_) { }
-
-      const devEmail = 'developer@student.ub.ac.id';
-      const devPass = 'rahasia12345';
-
-      // Coba buat akun dev kalau belum ada
-      try {
-        await account.create(ID.unique(), devEmail, devPass);
-      } catch (e: any) {
-        // Abaikan kalau email sudah terdaftar sebelumnya
-      }
-
-      // Buat sesi login tanpa OTP (pakai password khusus dev)
-      await account.createEmailPasswordSession(devEmail, devPass);
-
-      const currentUser = await account.get();
-      const response = await databases.listDocuments(
-        DATABASE_ID,
-        PROFILES_ID,
-        [Query.equal('user_id', currentUser.$id), Query.limit(1)]
-      );
-
-      router.refresh();
-      // Pakai window.location untuk force full reload supaya AuthContext baca sesi baru
-      window.location.href = '/beranda';
-    } catch (err: any) {
-      setError('Bypass Error: ' + (err.message || 'Gagal login bypass'));
-    }
-    setLoading(false);
-  };
-
   const handleOtpChange = (index: number, value: string) => {
     if (!/^\d*$/.test(value)) return;
     const newOtp = [...otp];
@@ -269,14 +233,6 @@ export default function LoginPage() {
                 Lanjutkan dengan Google
               </button>
 
-              <button
-                onClick={handleDevBypass}
-                className="btn btn-secondary btn-full btn-sm"
-                disabled={loading}
-                style={{ borderColor: '#6366f1', color: '#6366f1' }}
-              >
-                🛠️ Bypass Login (Dev Mode)
-              </button>
             </div>
           </>
         ) : (

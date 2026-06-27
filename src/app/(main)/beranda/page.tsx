@@ -57,8 +57,15 @@ function getUniversitasFromEmail(email?: string | null): string | null {
 }
 
 export default function BerandaPage() {
-  const { profile } = useAuth();
+  const { profile, user } = useAuth();
   const router = useRouter();
+
+  const handleJualClick = (e: React.MouseEvent) => {
+    if (!user) {
+      e.preventDefault();
+      router.push('/login');
+    }
+  };
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
@@ -134,7 +141,11 @@ export default function BerandaPage() {
               <Link href="/cari" className={`btn btn-secondary ${styles.heroBtnOutline}`}>
                 Mulai Belanja
               </Link>
-              <Link href="/jual" className={`btn btn-orange ${styles.heroBtnOrange}`}>
+              <Link
+                href="/jual"
+                className={`btn btn-orange ${styles.heroBtnOrange}`}
+                onClick={handleJualClick}
+              >
                 Jual Barang
               </Link>
             </div>
@@ -273,7 +284,12 @@ export default function BerandaPage() {
                     <p style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>
                       Jadilah yang pertama berjualan!
                     </p>
-                    <Link href="/jual" className="btn btn-primary btn-sm" style={{ marginTop: 8 }}>
+                    <Link
+                      href="/jual"
+                      className="btn btn-primary btn-sm"
+                      style={{ marginTop: 8 }}
+                      onClick={handleJualClick}
+                    >
                       + Jual Sekarang
                     </Link>
                   </div>
