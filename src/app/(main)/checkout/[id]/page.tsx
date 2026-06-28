@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
-import { ChevronLeft, Users, Truck, Shield, QrCode, Building2, Wallet, Package } from 'lucide-react';
+import { ChevronLeft, Users, Truck, Shield, QrCode, Package } from 'lucide-react';
 import { databases, DATABASE_ID, PRODUCTS_ID, PROFILES_ID, TRANSACTIONS_ID, mapDoc, Product } from '@/lib/appwrite';
 import { ID, Query } from 'appwrite';
 import { useAuth } from '@/lib/AuthContext';
@@ -15,8 +15,6 @@ function formatPrice(n: number) {
 
 const PAYMENT_METHODS = [
   { id: 'qris', label: 'QRIS', icon: QrCode },
-  { id: 'transfer', label: 'Transfer Bank', icon: Building2 },
-  { id: 'ewallet', label: 'E-Wallet', icon: Wallet },
   { id: 'cod', label: 'Bayar COD', icon: Package },
 ];
 

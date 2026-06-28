@@ -329,23 +329,32 @@
   margin-top: 3px;
 }
 
-.waBtn {
+.chatBtn {
   display: flex;
   align-items: center;
   gap: 6px;
-  padding: 7px 14px;
-  background: #25D366;
-  color: white;
-  border: none;
-  border-radius: var(--radius-md);
-  font-size: 0.8rem;
+  padding: 8px 16px;
+  background: white;
+  color: var(--green-700);
+  border: 1px solid var(--green-700);
+  border-radius: var(--radius-full);
+  font-size: 0.85rem;
   font-weight: 600;
   cursor: pointer;
   transition: all var(--transition-fast);
   flex-shrink: 0;
 }
 
-.waBtn:hover { background: #128C7E; }
+.chatBtn:hover {
+  background: var(--green-50);
+  transform: translateY(-1px);
+}
+
+.chatBtn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
+}
 
 /* Title & Price */
 .productTitle {

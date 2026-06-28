@@ -152,7 +152,7 @@ export default function PembayaranPage() {
               (MVP) Pilih metode dan tap tombol di bawah untuk mensimulasikan pembayaran sukses.
             </p>
             <div className={styles.paymentChips}>
-              {['QRIS', 'BCA', 'Mandiri', 'OVO'].map(m => (
+              {['QRIS', 'Bayar COD'].map(m => (
                 <div key={m} className={styles.paymentChip}>{m}</div>
               ))}
             </div>

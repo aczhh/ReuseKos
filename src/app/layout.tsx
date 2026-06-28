@@ -1,5 +1,8 @@
 import type { Metadata } from 'next';
 import './globals.css';
+import { AuthProvider } from '@/lib/AuthContext';
+import { CartProvider } from '@/lib/CartContext';
+import { WishlistProvider } from '@/lib/WishlistContext';
 
 export const metadata: Metadata = {
   title: 'ReuseKos — Marketplace Perabot Mahasiswa',
@@ -16,9 +19,15 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="id">
       <body>
-        <div className="app-container">
-          {children}
-        </div>
+        <AuthProvider>
+          <WishlistProvider>
+            <CartProvider>
+              <div className="app-container">
+                {children}
+              </div>
+            </CartProvider>
+          </WishlistProvider>
+        </AuthProvider>
       </body>
     </html>
   );

@@ -3,10 +3,11 @@
 import Link from 'next/link';
 import Image from 'next/image';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
-import { Search, ShoppingCart, User, Menu, X, Wallet, Package, LogOut, Store, ChevronDown, Settings, Trash2 } from 'lucide-react';
+import { Search, ShoppingCart, User, Menu, X, Wallet, Package, LogOut, Store, ChevronDown, Settings, Trash2, Heart } from 'lucide-react';
 import { useState, useRef, useEffect, Suspense } from 'react';
 import { useCart } from '@/lib/CartContext';
 import { useAuth } from '@/lib/AuthContext';
+import { useWishlist } from '@/lib/WishlistContext';
 import styles from './Navigation.module.css';
 
 const NAV_CATEGORIES = [
@@ -127,6 +128,36 @@ function CartDropdown() {
         </div>
       )}
     </div>
+  );
+}
+
+function WishlistIcon() {
+  const { items } = useWishlist();
+  const count = items.length;
+  return (
+    <Link href="/wishlist" className={styles.actionBtn} aria-label="Wishlist" style={{ position: 'relative' }}>
+      <Heart size={20} />
+      {count > 0 && (
+        <span style={{
+          position: 'absolute',
+          top: -4,
+          right: -4,
+          background: '#ef4444',
+          color: 'white',
+          fontSize: '0.6rem',
+          fontWeight: 700,
+          width: 16,
+          height: 16,
+          borderRadius: '50%',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          lineHeight: 1,
+        }}>
+          {count > 9 ? '9+' : count}
+        </span>
+      )}
+    </Link>
   );
 }
 
@@ -319,6 +350,7 @@ export function Navbar() {
 
           {/* Right Actions */}
           <div className={styles.navActions}>
+            <WishlistIcon />
             <CartDropdown />
             <AccountDropdown />
             {/* Mobile hamburger */}

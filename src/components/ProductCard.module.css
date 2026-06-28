@@ -101,6 +101,16 @@
   box-shadow: var(--shadow-md);
 }
 
+.wishlistActive {
+  color: #ef4444;
+  background: #fff0f0;
+}
+
+.wishlistActive:hover {
+  color: #dc2626;
+  background: #ffe4e4;
+}
+
 /* ===========================
    DISTANCE BADGE
 =========================== */

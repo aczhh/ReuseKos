@@ -217,40 +217,7 @@ export default function BerandaPage() {
         </div>
       </section>
 
-      {/* ===== STATS BANNER ===== */}
-      <section className={styles.statsBanner}>
-        <div className={styles.sectionInner}>
-          <div className={styles.statsRow}>
-            <div className={styles.statItem}>
-              <div className={styles.statIconWrap} style={{ background: 'rgba(45,90,64,0.12)' }}>
-                <span>♻️</span>
-              </div>
-              <div>
-                <div className={styles.statValue}>120kg</div>
-                <div className={styles.statLabel}>Sampah Terkurangi</div>
-              </div>
-            </div>
-            <div className={styles.statItem}>
-              <div className={styles.statIconWrap} style={{ background: 'rgba(249,115,22,0.12)' }}>
-                <span>👥</span>
-              </div>
-              <div>
-                <div className={styles.statValue}>450+</div>
-                <div className={styles.statLabel}>Mahasiswa Aktif</div>
-              </div>
-            </div>
-            <div className={styles.statItem}>
-              <div className={styles.statIconWrap} style={{ background: 'rgba(16,185,129,0.12)' }}>
-                <span>💰</span>
-              </div>
-              <div>
-                <div className={styles.statValue}>Rp 12jt+</div>
-                <div className={styles.statLabel}>Total Budget Dihemat</div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
+
 
       {/* ===== PRODUCT RECOMMENDATIONS ===== */}
       <section className={styles.productsSection}>
