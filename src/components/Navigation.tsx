@@ -135,25 +135,10 @@ function WishlistIcon() {
   const { items } = useWishlist();
   const count = items.length;
   return (
-    <Link href="/wishlist" className={styles.actionBtn} aria-label="Wishlist" style={{ position: 'relative' }}>
+    <Link href="/wishlist" className={styles.actionBtn} aria-label="Wishlist">
       <Heart size={20} />
       {count > 0 && (
-        <span style={{
-          position: 'absolute',
-          top: -4,
-          right: -4,
-          background: '#ef4444',
-          color: 'white',
-          fontSize: '0.6rem',
-          fontWeight: 700,
-          width: 16,
-          height: 16,
-          borderRadius: '50%',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          lineHeight: 1,
-        }}>
+        <span className={styles.cartBadge}>
           {count > 9 ? '9+' : count}
         </span>
       )}

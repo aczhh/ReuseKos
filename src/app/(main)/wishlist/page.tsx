@@ -40,7 +40,7 @@ export default function WishlistPage() {
       <div className={styles.inner}>
         <div className={styles.header}>
           <h1 className={styles.title}>
-            <Heart size={22} fill="currentColor" /> Wishlist Saya
+            <Heart size={22} fill="none" strokeWidth={2.5} /> Wishlist Saya
           </h1>
           <span className={styles.count}>{items.length} barang</span>
           <button className={styles.clearBtn} onClick={clearWishlist}>
