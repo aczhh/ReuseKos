@@ -15,7 +15,7 @@ function formatPrice(n: number) {
 const ADMIN_FEE = 2500;
 
 export default function KeranjangPage() {
-  const { items, removeFromCart, clearCart, totalPrice, totalItems } = useCart();
+  const { items, initialized, removeFromCart, clearCart, totalPrice, totalItems } = useCart();
   const router = useRouter();
   const [selected, setSelected] = useState<Set<string>>(new Set(items.map(i => i.product.id)));
 
@@ -25,7 +25,10 @@ export default function KeranjangPage() {
   const [showRemovedAlert, setShowRemovedAlert] = useState(false);
 
   // Validasi ulang produk di keranjang saat halaman dibuka
+  // Tunggu cart selesai load dari localStorage (initialized === true)
   useEffect(() => {
+    if (!initialized) return;
+
     if (items.length === 0) {
       setChecking(false);
       return;
@@ -62,7 +65,7 @@ export default function KeranjangPage() {
 
     validateCartItems();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [initialized]);
 
   // Update selected set saat items berubah (misal setelah validasi)
   useEffect(() => {

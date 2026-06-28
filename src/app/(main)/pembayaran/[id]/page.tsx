@@ -80,10 +80,25 @@ export default function PembayaranPage() {
     setConfirming(false);
   };
 
-  if (loading || !tx) {
+  if (loading) {
     return (
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '100dvh' }}>
         <span className="spinner" style={{ width: 36, height: 36, borderWidth: 3 }} />
+      </div>
+    );
+  }
+
+  if (!tx) {
+    return (
+      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', minHeight: '100dvh', gap: 16, padding: '24px', textAlign: 'center' }}>
+        <div style={{ fontSize: '3rem' }}>⚠️</div>
+        <h2 style={{ fontWeight: 700, fontSize: '1.2rem' }}>Transaksi Tidak Ditemukan</h2>
+        <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem', maxWidth: 400 }}>
+          Transaksi ini tidak ditemukan atau sudah tidak valid.
+        </p>
+        <button className="btn btn-primary" onClick={() => router.push('/beranda')}>
+          Kembali ke Beranda
+        </button>
       </div>
     );
   }

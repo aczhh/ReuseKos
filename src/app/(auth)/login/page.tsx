@@ -43,7 +43,7 @@ export default function LoginPage() {
     try {
       // Hapus sesi lama jika ada
       try { await account.deleteSession('current'); } catch (_) { }
-      
+
       account.createOAuth2Session(
         OAuthProvider.Google,
         `${window.location.origin}/callback`, // Success URL
@@ -221,7 +221,7 @@ export default function LoginPage() {
               <div style={{ height: 1, backgroundColor: 'var(--border)', margin: '16px 0', position: 'relative' }}>
                 <span style={{ position: 'absolute', top: -10, left: '50%', transform: 'translateX(-50%)', backgroundColor: 'var(--bg-card)', padding: '0 8px', fontSize: '0.75rem', color: 'var(--text-muted)' }}>ATAU</span>
               </div>
-              
+
               <button
                 type="button"
                 onClick={handleGoogleLogin}
