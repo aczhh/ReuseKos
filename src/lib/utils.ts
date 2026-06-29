@@ -58,3 +58,9 @@ export const SPLIT_RATIO = {
   driver: 0.10,  // 10% ke sopir
   admin:  0.05,  // 5%  ke admin/kas ReuseKos
 };
+
+/** Harga promosi produk (dipotong dari saldo penjual) */
+export const PROMO_PRICE = 5000;
+
+/** Durasi iklan aktif (hari) */
+export const PROMO_DAYS = 7;

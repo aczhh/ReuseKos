@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Shield, CheckCircle, Clock, Package } from 'lucide-react';
+import { Shield, CheckCircle, Clock, Package, Megaphone, X } from 'lucide-react';
 import { databases, DATABASE_ID, TRANSACTIONS_ID, PRODUCTS_ID, PROFILES_ID, mapDoc, Transaction, Product, Profile } from '@/lib/appwrite';
 import { Query } from 'appwrite';
 
@@ -22,8 +22,10 @@ export default function AdminPage() {
   const [isAdminAuth, setIsAdminAuth] = useState(false);
   const [passwordInput, setPasswordInput] = useState('');
   const [transactions, setTransactions] = useState<Transaction[]>([]);
+  const [promotedProducts, setPromotedProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(false);
   const [actionLoading, setActionLoading] = useState<string | null>(null);
+  const [adminTab, setAdminTab] = useState<'transaksi' | 'iklan'>('transaksi');
 
   useEffect(() => {
     // Check if admin is authenticated from sessionStorage
@@ -102,8 +104,37 @@ export default function AdminPage() {
 
     if (isAdminAuth) {
       fetchAllTxs();
+      fetchPromotedProducts();
     }
   }, [isAdminAuth]);
+
+  const fetchPromotedProducts = async () => {
+    try {
+      const response = await databases.listDocuments(
+        DATABASE_ID,
+        PRODUCTS_ID,
+        [
+          Query.equal('is_promoted', true),
+          Query.limit(50)
+        ]
+      );
+      const promos = response.documents.map(doc => mapDoc<Product>(doc));
+
+      // Fetch sellers for promoted products
+      const sellerIds = [...new Set(promos.map(p => p.seller_id))];
+      if (sellerIds.length > 0) {
+        const sellersRes = await databases.listDocuments(DATABASE_ID, PROFILES_ID, [Query.equal('user_id', sellerIds)]);
+        const sellersMap = new Map();
+        sellersRes.documents.forEach(doc => sellersMap.set(doc.user_id, mapDoc(doc)));
+        promos.forEach(p => { p.seller = sellersMap.get(p.seller_id); });
+      }
+
+      setPromotedProducts(promos);
+    } catch {
+      // is_promoted attribute might not exist yet
+      setPromotedProducts([]);
+    }
+  };
 
   const handleConfirmPayment = async (tx: Transaction) => {
     if (!confirm('Konfirmasi pembayaran untuk transaksi ini?')) return;
@@ -127,6 +158,21 @@ export default function AdminPage() {
       setTransactions(prev => prev.map(t => t.id === tx.id ? { ...t, status: 'completed' } : t));
     } catch (e: any) {
       alert('Gagal mengkonfirmasi selesai: ' + e.message);
+    }
+    setActionLoading(null);
+  };
+
+  const handleRevokePromo = async (product: Product) => {
+    if (!confirm(`Cabut iklan untuk "${product.title}"?`)) return;
+    setActionLoading(product.id);
+    try {
+      await databases.updateDocument(DATABASE_ID, PRODUCTS_ID, product.id, {
+        is_promoted: false,
+        promoted_until: null,
+      });
+      setPromotedProducts(prev => prev.filter(p => p.id !== product.id));
+    } catch (e: any) {
+      alert('Gagal mencabut iklan: ' + e.message);
     }
     setActionLoading(null);
   };
@@ -190,6 +236,24 @@ export default function AdminPage() {
         <button className="btn btn-ghost btn-sm" onClick={handleAdminLogout}>Logout</button>
       </div>
 
+      {/* Tabs */}
+      <div style={{ display: 'flex', gap: 8, marginBottom: 16 }}>
+        <button
+          className={`btn btn-sm ${adminTab === 'transaksi' ? 'btn-primary' : 'btn-ghost'}`}
+          onClick={() => setAdminTab('transaksi')}
+        >
+          <Package size={14} /> Transaksi
+        </button>
+        <button
+          className={`btn btn-sm ${adminTab === 'iklan' ? 'btn-primary' : 'btn-ghost'}`}
+          onClick={() => setAdminTab('iklan')}
+          style={adminTab === 'iklan' ? { background: 'var(--orange-500)' } : {}}
+        >
+          <Megaphone size={14} /> Kelola Iklan ({promotedProducts.length})
+        </button>
+      </div>
+
+      {adminTab === 'transaksi' ? (
       <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
         {transactions.length === 0 ? (
           <div className="empty-state">
@@ -266,6 +330,65 @@ export default function AdminPage() {
           })
         )}
       </div>
+      ) : (
+      /* ===== KELOLA IKLAN TAB ===== */
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+        {promotedProducts.length === 0 ? (
+          <div className="empty-state">
+            <div className="empty-state-icon">📢</div>
+            <p style={{ fontWeight: 600 }}>Belum ada produk iklan</p>
+            <p style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>Penjual bisa mempromosikan produk dari halaman profil mereka.</p>
+          </div>
+        ) : (
+          promotedProducts.map(p => {
+            const seller = p.seller as Profile;
+            const isExpired = p.promoted_until && new Date(p.promoted_until) <= new Date();
+            
+            return (
+              <div key={p.id} style={{
+                background: 'var(--bg-card)',
+                border: `1px solid ${isExpired ? 'rgba(248,113,113,0.3)' : 'rgba(249,115,22,0.2)'}`,
+                borderRadius: 'var(--radius-lg)',
+                padding: '16px',
+                display: 'flex',
+                alignItems: 'center',
+                gap: 12,
+                opacity: isExpired ? 0.6 : 1,
+              }}>
+                <div style={{ width: 48, height: 48, borderRadius: 'var(--radius-md)', overflow: 'hidden', flexShrink: 0, background: 'var(--gray-100)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                  {p.photos?.[0]
+                    ? <img src={p.photos[0]} alt={p.title} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                    : <span style={{ fontSize: '1.5rem' }}>🛋️</span>
+                  }
+                </div>
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <p style={{ fontSize: '0.9rem', fontWeight: 700 }}>{p.title}</p>
+                  <p style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginTop: 2 }}>
+                    Penjual: {seller?.full_name || 'Unknown'} • {formatPrice(p.price)}
+                  </p>
+                  <p style={{ fontSize: '0.7rem', color: isExpired ? 'var(--red-500)' : 'var(--orange-500)', marginTop: 2 }}>
+                    {isExpired 
+                      ? '⏰ Iklan Kadaluarsa'
+                      : p.promoted_until 
+                        ? `📅 Aktif sampai ${new Date(p.promoted_until).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' })}` 
+                        : '📅 Aktif (tanpa batas)'
+                    }
+                  </p>
+                </div>
+                <button
+                  className="btn btn-danger btn-sm"
+                  onClick={() => handleRevokePromo(p)}
+                  disabled={actionLoading === p.id}
+                  style={{ flexShrink: 0 }}
+                >
+                  {actionLoading === p.id ? <span className="spinner" style={{ width: 14, height: 14 }} /> : <><X size={14} /> Cabut</>}
+                </button>
+              </div>
+            );
+          })
+        )}
+      </div>
+      )}
     </div>
   );
 }

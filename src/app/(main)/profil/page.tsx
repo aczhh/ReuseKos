@@ -2,10 +2,11 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { LogOut, Edit2, Package, ChevronRight, Store, X, CheckCircle, CreditCard, QrCode, Trash2, Eye } from 'lucide-react';
+import { LogOut, Edit2, Package, ChevronRight, Store, X, CheckCircle, CreditCard, QrCode, Trash2, Eye, Megaphone } from 'lucide-react';
 import { databases, DATABASE_ID, TRANSACTIONS_ID, PRODUCTS_ID, PROFILES_ID, mapDoc, Transaction, Product } from '@/lib/appwrite';
 import { Query } from 'appwrite';
 import { useAuth } from '@/lib/AuthContext';
+import { PROMO_PRICE, PROMO_DAYS } from '@/lib/utils';
 import Link from 'next/link';
 
 function formatPrice(n: number) {
@@ -37,6 +38,7 @@ export default function ProfilPage() {
   const [bankAccount, setBankAccount] = useState('');
   const [qrisUrl, setQrisUrl] = useState('');
   const [paymentError, setPaymentError] = useState('');
+  const [promoteLoading, setPromoteLoading] = useState<string | null>(null);
 
   useEffect(() => {
     if (!user) return;
@@ -103,6 +105,67 @@ export default function ProfilPage() {
   const handleSignOut = async () => {
     await signOut();
     router.push('/login');
+  };
+
+  const handlePromote = async (product: Product) => {
+    if (!profile || !user) return;
+    
+    const isCurrentlyPromoted = product.is_promoted && (!product.promoted_until || new Date(product.promoted_until) > new Date());
+    
+    if (isCurrentlyPromoted) {
+      // Hentikan iklan
+      if (!window.confirm('Hentikan iklan untuk produk ini?')) return;
+      setPromoteLoading(product.id);
+      try {
+        await databases.updateDocument(DATABASE_ID, PRODUCTS_ID, product.id, {
+          is_promoted: false,
+          promoted_until: null,
+        });
+        setMyProducts(prev => prev.map(p => p.id === product.id ? { ...p, is_promoted: false, promoted_until: null } : p));
+      } catch (e: any) {
+        alert('Gagal menghentikan iklan: ' + e.message);
+      }
+      setPromoteLoading(null);
+      return;
+    }
+
+    // Promosikan
+    if ((profile.saldo || 0) < PROMO_PRICE) {
+      alert(`Saldo tidak cukup! Dibutuhkan ${formatPrice(PROMO_PRICE)}, saldo kamu ${formatPrice(profile.saldo || 0)}.`);
+      return;
+    }
+
+    if (!window.confirm(`Promosikan "${product.title}" selama ${PROMO_DAYS} hari?\nBiaya: ${formatPrice(PROMO_PRICE)} (dipotong dari saldo)\n\nSaldo kamu: ${formatPrice(profile.saldo || 0)}`)) return;
+    
+    setPromoteLoading(product.id);
+    try {
+      const untilDate = new Date();
+      untilDate.setDate(untilDate.getDate() + PROMO_DAYS);
+
+      // Update produk
+      await databases.updateDocument(DATABASE_ID, PRODUCTS_ID, product.id, {
+        is_promoted: true,
+        promoted_until: untilDate.toISOString(),
+      });
+
+      // Potong saldo penjual
+      const profileResponse = await databases.listDocuments(DATABASE_ID, PROFILES_ID, [
+        Query.equal('user_id', user.$id), Query.limit(1)
+      ]);
+      if (profileResponse.documents.length > 0) {
+        const profileDoc = profileResponse.documents[0];
+        await databases.updateDocument(DATABASE_ID, PROFILES_ID, profileDoc.$id, {
+          saldo: (profileDoc.saldo || 0) - PROMO_PRICE,
+        });
+        await refreshProfile();
+      }
+
+      setMyProducts(prev => prev.map(p => p.id === product.id ? { ...p, is_promoted: true, promoted_until: untilDate.toISOString() } : p));
+      alert('✅ Produk berhasil dipromosikan!');
+    } catch (e: any) {
+      alert('Gagal mempromosikan produk: ' + e.message);
+    }
+    setPromoteLoading(null);
   };
 
   const handleBecomeSeller = async () => {
@@ -397,7 +460,29 @@ export default function ProfilPage() {
                       {p.is_sold ? '✅ Terjual' : '🟢 Aktif dijual'} • {formatPrice(p.price)}
                     </p>
                   </div>
-                  <div style={{ display: 'flex', gap: 6 }}>
+                  <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
+                    {!p.is_sold && (
+                      <button
+                        className="btn btn-ghost btn-sm"
+                        style={{
+                          padding: '4px 8px',
+                          fontSize: '0.7rem',
+                          color: p.is_promoted && (!p.promoted_until || new Date(p.promoted_until) > new Date()) ? 'var(--orange-600)' : 'var(--green-700)',
+                          background: p.is_promoted && (!p.promoted_until || new Date(p.promoted_until) > new Date()) ? 'rgba(249,115,22,0.08)' : 'rgba(45,90,64,0.06)',
+                          border: `1px solid ${p.is_promoted && (!p.promoted_until || new Date(p.promoted_until) > new Date()) ? 'rgba(249,115,22,0.2)' : 'rgba(45,90,64,0.15)'}`,
+                        }}
+                        onClick={() => handlePromote(p)}
+                        disabled={promoteLoading === p.id}
+                      >
+                        {promoteLoading === p.id ? (
+                          <span className="spinner" style={{ width: 12, height: 12 }} />
+                        ) : p.is_promoted && (!p.promoted_until || new Date(p.promoted_until) > new Date()) ? (
+                          <><Megaphone size={12} /> Iklan Aktif</>
+                        ) : (
+                          <><Megaphone size={12} /> Promosikan</>
+                        )}
+                      </button>
+                    )}
                     <Link href={`/produk/${p.id}`} className="btn btn-ghost btn-sm" style={{ padding: 6 }}>
                       <Eye size={16} />
                     </Link>

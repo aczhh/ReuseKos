@@ -11,6 +11,10 @@ import { PRODUCT_CATEGORIES } from '@/lib/utils';
 import ProductCard, { ProductCardSkeleton } from '@/components/ProductCard';
 import styles from './beranda.module.css';
 
+function formatPrice(n: number) {
+  return new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 }).format(n);
+}
+
 const QUICK_CATS = [
   { label: 'Meja', icon: '🪑', cat: 'Meja & Kursi' },
   { label: 'Kursi', icon: '🪑', cat: 'Meja & Kursi' },
@@ -67,12 +71,14 @@ export default function BerandaPage() {
     }
   };
   const [products, setProducts] = useState<Product[]>([]);
+  const [promotedProducts, setPromotedProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
 
   const fetchProducts = useCallback(async () => {
     setLoading(true);
     try {
+      // Fetch regular products
       const response = await databases.listDocuments(
         DATABASE_ID,
         PRODUCTS_ID,
@@ -85,6 +91,30 @@ export default function BerandaPage() {
 
       const fetchedProducts = response.documents.map(doc => mapDoc<Product>(doc));
       
+      // Fetch promoted products
+      try {
+        const promoResponse = await databases.listDocuments(
+          DATABASE_ID,
+          PRODUCTS_ID,
+          [
+            Query.equal('is_sold', false),
+            Query.equal('is_promoted', true),
+            Query.limit(5)
+          ]
+        );
+        const promos = promoResponse.documents
+          .map(doc => mapDoc<Product>(doc))
+          .filter(p => {
+            // Filter expired promos
+            if (!p.promoted_until) return true;
+            return new Date(p.promoted_until) > new Date();
+          });
+        setPromotedProducts(promos);
+      } catch {
+        // is_promoted attribute might not exist yet, silently ignore
+        setPromotedProducts([]);
+      }
+
       // Fetch sellers
       const sellerIds = [...new Set(fetchedProducts.map(p => p.seller_id))];
       if (sellerIds.length > 0) {
@@ -158,23 +188,48 @@ export default function BerandaPage() {
                   <div className={styles.heroMockupDots}>
                     <span /><span /><span />
                   </div>
-                  <span className={styles.heroMockupTitle}>Rekomendasi</span>
+                  <span className={styles.heroMockupTitle}>⭐ Produk Iklan</span>
                 </div>
                 <div className={styles.heroMockupBody}>
-                  <div className={styles.heroProductPreview}>
-                    <div className={styles.heroProductImg}>🪑</div>
-                    <div className={styles.heroProductInfo}>
-                      <div className={styles.heroProductName}>Meja Belajar Kayu Jati</div>
-                      <div className={styles.heroProductPrice}>Rp 250.000</div>
-                    </div>
-                  </div>
-                  <div className={styles.heroProductPreview}>
-                    <div className={styles.heroProductImg}>🍚</div>
-                    <div className={styles.heroProductInfo}>
-                      <div className={styles.heroProductName}>Rice Cooker Philips 2L</div>
-                      <div className={styles.heroProductPrice}>Rp 350.000</div>
-                    </div>
-                  </div>
+                  {promotedProducts.length > 0 ? (
+                    promotedProducts.slice(0, 3).map(p => (
+                      <Link
+                        key={p.id}
+                        href={`/produk/${p.id}`}
+                        className={styles.heroProductPreview}
+                        style={{ textDecoration: 'none', cursor: 'pointer' }}
+                      >
+                        <div className={styles.heroProductImg}>
+                          {p.photos?.[0]
+                            ? <img src={p.photos[0]} alt={p.title} style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: 'var(--radius-md)' }} />
+                            : '🛋️'
+                          }
+                        </div>
+                        <div className={styles.heroProductInfo}>
+                          <div className={styles.heroProductName}>{p.title}</div>
+                          <div className={styles.heroProductPrice}>{formatPrice(p.price)}</div>
+                        </div>
+                        <span className={styles.heroAdBadge}>Iklan</span>
+                      </Link>
+                    ))
+                  ) : (
+                    <>
+                      <div className={styles.heroProductPreview}>
+                        <div className={styles.heroProductImg}>🪑</div>
+                        <div className={styles.heroProductInfo}>
+                          <div className={styles.heroProductName}>Meja Belajar Kayu Jati</div>
+                          <div className={styles.heroProductPrice}>Rp 250.000</div>
+                        </div>
+                      </div>
+                      <div className={styles.heroProductPreview}>
+                        <div className={styles.heroProductImg}>🍚</div>
+                        <div className={styles.heroProductInfo}>
+                          <div className={styles.heroProductName}>Rice Cooker Philips 2L</div>
+                          <div className={styles.heroProductPrice}>Rp 350.000</div>
+                        </div>
+                      </div>
+                    </>
+                  )}
                 </div>
               </div>
             </div>

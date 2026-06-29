@@ -56,6 +56,8 @@ export type Product = {
   lng: number;
   address: string;
   is_sold: boolean;
+  is_promoted?: boolean;
+  promoted_until?: string | null;
   created_at: string;
 };
 

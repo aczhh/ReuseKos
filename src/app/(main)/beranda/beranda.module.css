@@ -212,6 +212,29 @@
   color: var(--orange-600);
 }
 
+.heroAdBadge {
+  font-size: 0.6rem;
+  font-weight: 700;
+  color: white;
+  background: var(--orange-500);
+  padding: 2px 8px;
+  border-radius: var(--radius-full);
+  white-space: nowrap;
+  flex-shrink: 0;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+a.heroProductPreview {
+  transition: all var(--transition-fast);
+}
+
+a.heroProductPreview:hover {
+  background: var(--green-50);
+  border-color: var(--orange-400);
+  transform: translateX(4px);
+}
+
 .verifiedBadge {
   position: absolute;
   bottom: -12px;

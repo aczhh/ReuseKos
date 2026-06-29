@@ -802,8 +802,8 @@
   /* Mobile search row — shown below header */
   .mobileSearchRow {
     display: flex;
-    background: #203226;
-    padding: 8px var(--content-padding);
+    background: #5A6B60;
+    padding: 4px 35px;
     border-top: 1px solid rgba(255, 255, 255, 0.08);
   }
 
@@ -812,7 +812,7 @@
     align-items: center;
     width: 100%;
     background: rgba(255, 255, 255, 0.1);
-    border: 1.5px solid rgba(255, 255, 255, 0.15);
+    border: 1px solid rgba(255, 255, 255, 0.15);
     border-radius: var(--radius-md);
     overflow: hidden;
   }
