@@ -181,18 +181,18 @@ export default function BerandaPage() {
             </div>
           </div>
 
-          <div className={styles.heroRight}>
-            <div className={styles.heroMockup}>
-              <div className={styles.heroMockupInner}>
-                <div className={styles.heroMockupHeader}>
-                  <div className={styles.heroMockupDots}>
-                    <span /><span /><span />
+          {promotedProducts.length > 0 && (
+            <div className={styles.heroRight}>
+              <div className={styles.heroMockup}>
+                <div className={styles.heroMockupInner}>
+                  <div className={styles.heroMockupHeader}>
+                    <div className={styles.heroMockupDots}>
+                      <span /><span /><span />
+                    </div>
+                    <span className={styles.heroMockupTitle}>⭐ Produk Iklan</span>
                   </div>
-                  <span className={styles.heroMockupTitle}>⭐ Produk Iklan</span>
-                </div>
-                <div className={styles.heroMockupBody}>
-                  {promotedProducts.length > 0 ? (
-                    promotedProducts.slice(0, 3).map(p => (
+                  <div className={styles.heroMockupBody}>
+                    {promotedProducts.slice(0, 3).map(p => (
                       <Link
                         key={p.id}
                         href={`/produk/${p.id}`}
@@ -211,29 +211,12 @@ export default function BerandaPage() {
                         </div>
                         <span className={styles.heroAdBadge}>Iklan</span>
                       </Link>
-                    ))
-                  ) : (
-                    <>
-                      <div className={styles.heroProductPreview}>
-                        <div className={styles.heroProductImg}><Sofa size={24} style={{ color: 'var(--text-muted)' }} /></div>
-                        <div className={styles.heroProductInfo}>
-                          <div className={styles.heroProductName}>Meja Belajar Kayu Jati</div>
-                          <div className={styles.heroProductPrice}>Rp 250.000</div>
-                        </div>
-                      </div>
-                      <div className={styles.heroProductPreview}>
-                        <div className={styles.heroProductImg}><Coffee size={24} style={{ color: 'var(--text-muted)' }} /></div>
-                        <div className={styles.heroProductInfo}>
-                          <div className={styles.heroProductName}>Rice Cooker Philips 2L</div>
-                          <div className={styles.heroProductPrice}>Rp 350.000</div>
-                        </div>
-                      </div>
-                    </>
-                  )}
+                    ))}
+                  </div>
                 </div>
               </div>
             </div>
-          </div>
+          )}
         </div>
       </section>
 
