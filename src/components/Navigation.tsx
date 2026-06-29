@@ -213,13 +213,7 @@ function AccountDropdown() {
             <span>Pesanan Saya</span>
           </Link>
 
-          <div className={styles.dropdownItem} style={{ cursor: 'default' }}>
-            <Wallet size={16} />
-            <span>Wallet</span>
-            <span className={styles.dropdownBadge}>{formatPrice(profile?.saldo || 0)}</span>
-          </div>
 
-          <div className={styles.dropdownDivider} />
 
           {/* Mulai Berjualan */}
           <Link

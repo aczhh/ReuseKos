@@ -206,6 +206,7 @@ export default function ProfilPage() {
           </button>
         </div>
 
+
         {/* Quick Menu */}
         <div style={{
           marginTop: 12,

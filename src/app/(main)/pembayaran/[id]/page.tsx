@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
+import Script from 'next/script';
 import { CheckCircle2, Clock, Package, Truck } from 'lucide-react';
 import { databases, DATABASE_ID, TRANSACTIONS_ID, PRODUCTS_ID, PROFILES_ID, mapDoc, Transaction, Product } from '@/lib/appwrite';
 import { Query } from 'appwrite';
@@ -47,12 +48,54 @@ export default function PembayaranPage() {
     fetch();
   }, [id]);
 
-  const handleSimulatePay = async () => {
-    if (!tx) return;
+  const handlePayMidtrans = async () => {
+    if (!tx || !user) return;
     setConfirming(true);
-    await databases.updateDocument(DATABASE_ID, TRANSACTIONS_ID, tx.id, { status: 'paid' });
-    await databases.updateDocument(DATABASE_ID, PRODUCTS_ID, tx.product_id, { is_sold: true });
-    setTx(prev => prev ? { ...prev, status: 'paid' } : prev);
+    try {
+      // 1. Get token from our API
+      const res = await fetch('/api/midtrans', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          transaction_id: tx.id,
+          amount: tx.amount,
+          customer_details: {
+            first_name: user.name || 'Pembeli',
+            email: user.email || 'pembeli@example.com'
+          }
+        })
+      });
+      const data = await res.json();
+
+      if (data.token) {
+        // 2. Trigger Snap popup
+        (window as any).snap.pay(data.token, {
+          onSuccess: async function(result: any) {
+            console.log('Payment success:', result);
+            // Update to paid in database
+            await databases.updateDocument(DATABASE_ID, TRANSACTIONS_ID, tx.id, { status: 'paid' });
+            await databases.updateDocument(DATABASE_ID, PRODUCTS_ID, tx.product_id, { is_sold: true });
+            setTx(prev => prev ? { ...prev, status: 'paid' } : prev);
+          },
+          onPending: function(result: any) {
+            console.log('Payment pending:', result);
+            alert('Menunggu pembayaran diselesaikan.');
+          },
+          onError: function(result: any) {
+            console.log('Payment error:', result);
+            alert('Pembayaran gagal atau terjadi kesalahan.');
+          },
+          onClose: function() {
+            console.log('User closed popup without finishing payment');
+          }
+        });
+      } else {
+        alert('Gagal mendapatkan token pembayaran dari server.');
+      }
+    } catch (e: any) {
+      console.error(e);
+      alert('Terjadi kesalahan saat memproses pembayaran.');
+    }
     setConfirming(false);
   };
 
@@ -110,6 +153,11 @@ export default function PembayaranPage() {
 
   return (
     <div className={styles.page}>
+      <Script 
+        src="https://app.sandbox.midtrans.com/snap/snap.js" 
+        data-client-key={process.env.NEXT_PUBLIC_MIDTRANS_CLIENT_KEY}
+        strategy="lazyOnload"
+      />
       <div className={styles.inner}>
 
         {/* ===== STATUS CARD ===== */}
@@ -144,25 +192,25 @@ export default function PembayaranPage() {
           <p className={styles.productPrice}>{formatPrice(tx.amount)}</p>
         </div>
 
-        {/* ===== SIMULASI PEMBAYARAN (status: pending) ===== */}
+        {/* ===== PEMBAYARAN OTOMATIS (status: pending) ===== */}
         {tx.status === 'pending' && (
           <div className={`${styles.actionCard} ${styles.pending}`}>
-            <p className={styles.actionCardTitle}>💳 Simulasi Pembayaran</p>
+            <p className={styles.actionCardTitle}>💳 Pembayaran (Midtrans)</p>
             <p className={styles.actionCardDesc}>
-              (MVP) Pilih metode dan tap tombol di bawah untuk mensimulasikan pembayaran sukses.
+              Pilih metode pembayaran melalui e-Wallet, Virtual Account, atau QRIS.
             </p>
             <div className={styles.paymentChips}>
-              {['QRIS', 'Bayar COD'].map(m => (
-                <div key={m} className={styles.paymentChip}>{m}</div>
-              ))}
+              <div className={styles.paymentChip}>E-Wallet</div>
+              <div className={styles.paymentChip}>QRIS</div>
+              <div className={styles.paymentChip}>Transfer Bank</div>
             </div>
             <button
               id="btn-simulate-pay"
               className={`${styles.actionBtn} ${styles.actionBtnPrimary}`}
-              onClick={handleSimulatePay}
+              onClick={handlePayMidtrans}
               disabled={confirming}
             >
-              {confirming ? <span className="spinner" /> : '✅ Simulasikan Pembayaran'}
+              {confirming ? <span className="spinner" /> : '✅ Bayar Sekarang'}
             </button>
           </div>
         )}
