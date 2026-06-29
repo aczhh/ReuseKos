@@ -13,6 +13,9 @@ export const metadata: Metadata = {
     description: 'Marketplace perabot kos khusus mahasiswa',
     type: 'website',
   },
+  icons: {
+    icon: '/favicon.ico?v=2',
+  },
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
