@@ -2,8 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
-import Script from 'next/script';
-import { CheckCircle2, Clock, Package, Truck } from 'lucide-react';
+import { CheckCircle2, Clock, Package, Truck, QrCode } from 'lucide-react';
 import { databases, DATABASE_ID, TRANSACTIONS_ID, PRODUCTS_ID, PROFILES_ID, mapDoc, Transaction, Product } from '@/lib/appwrite';
 import { Query } from 'appwrite';
 import { SPLIT_RATIO } from '@/lib/utils';
@@ -49,54 +48,8 @@ export default function PembayaranPage() {
   }, [id]);
 
   const handlePayMidtrans = async () => {
-    if (!tx || !user) return;
-    setConfirming(true);
-    try {
-      // 1. Get token from our API
-      const res = await fetch('/api/midtrans', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          transaction_id: tx.id,
-          amount: tx.amount,
-          customer_details: {
-            first_name: user.name || 'Pembeli',
-            email: user.email || 'pembeli@example.com'
-          }
-        })
-      });
-      const data = await res.json();
-
-      if (data.token) {
-        // 2. Trigger Snap popup
-        (window as any).snap.pay(data.token, {
-          onSuccess: async function(result: any) {
-            console.log('Payment success:', result);
-            // Update to paid in database
-            await databases.updateDocument(DATABASE_ID, TRANSACTIONS_ID, tx.id, { status: 'paid' });
-            await databases.updateDocument(DATABASE_ID, PRODUCTS_ID, tx.product_id, { is_sold: true });
-            setTx(prev => prev ? { ...prev, status: 'paid' } : prev);
-          },
-          onPending: function(result: any) {
-            console.log('Payment pending:', result);
-            alert('Menunggu pembayaran diselesaikan.');
-          },
-          onError: function(result: any) {
-            console.log('Payment error:', result);
-            alert('Pembayaran gagal atau terjadi kesalahan.');
-          },
-          onClose: function() {
-            console.log('User closed popup without finishing payment');
-          }
-        });
-      } else {
-        alert('Gagal mendapatkan token pembayaran dari server.');
-      }
-    } catch (e: any) {
-      console.error(e);
-      alert('Terjadi kesalahan saat memproses pembayaran.');
-    }
-    setConfirming(false);
+    // This function is no longer used, kept empty or removed.
+    // Payment is now manual via QRIS.
   };
 
   const handleConfirmReceived = async () => {
@@ -153,11 +106,6 @@ export default function PembayaranPage() {
 
   return (
     <div className={styles.page}>
-      <Script 
-        src="https://app.sandbox.midtrans.com/snap/snap.js" 
-        data-client-key={process.env.NEXT_PUBLIC_MIDTRANS_CLIENT_KEY}
-        strategy="lazyOnload"
-      />
       <div className={styles.inner}>
 
         {/* ===== STATUS CARD ===== */}
@@ -192,25 +140,51 @@ export default function PembayaranPage() {
           <p className={styles.productPrice}>{formatPrice(tx.amount)}</p>
         </div>
 
-        {/* ===== PEMBAYARAN OTOMATIS (status: pending) ===== */}
+        {/* ===== PEMBAYARAN MANUAL QRIS (status: pending) ===== */}
         {tx.status === 'pending' && (
           <div className={`${styles.actionCard} ${styles.pending}`}>
-            <p className={styles.actionCardTitle}>💳 Pembayaran (Midtrans)</p>
+            <p className={styles.actionCardTitle}>💳 Pembayaran (Manual Transfer)</p>
             <p className={styles.actionCardDesc}>
-              Pilih metode pembayaran melalui e-Wallet, Virtual Account, atau QRIS.
+              Silakan lakukan pembayaran sebesar <strong>{formatPrice(tx.amount)}</strong> dengan menscan QRIS di bawah ini. Uangmu akan disimpan dengan aman oleh Admin sampai barang tiba di tujuan.
             </p>
-            <div className={styles.paymentChips}>
-              <div className={styles.paymentChip}>E-Wallet</div>
-              <div className={styles.paymentChip}>QRIS</div>
-              <div className={styles.paymentChip}>Transfer Bank</div>
+            
+            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', margin: '20px 0', gap: 12 }}>
+              <div style={{ width: 200, height: 200, background: 'white', borderRadius: 12, padding: 12, border: '2px solid var(--border)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                <img 
+                  src="/qris-admin.png" 
+                  alt="QRIS Admin" 
+                  style={{ width: '100%', height: '100%', objectFit: 'contain' }}
+                  onError={(e) => {
+                    // Fallback jika gambar qris-admin.png belum ada
+                    const target = e.target as HTMLImageElement;
+                    target.style.display = 'none';
+                    if (target.parentElement) {
+                      target.parentElement.innerHTML = '<div style="text-align:center; color: var(--text-muted);"><span style="font-size:3rem">📷</span><br/>Gambar QRIS Admin (qris-admin.png) belum diupload ke folder public.</div>';
+                    }
+                  }}
+                />
+              </div>
+              <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)', textAlign: 'center' }}>
+                Atas Nama: Admin ReuseKos<br/>
+                *(Ganti file <code>public/qris-admin.png</code> dengan QRIS aslimu)*
+              </p>
             </div>
+
+            <div style={{ padding: '12px', background: 'var(--blue-50)', border: '1px solid var(--blue-200)', borderRadius: 'var(--radius-md)', textAlign: 'center' }}>
+              <p style={{ fontSize: '0.85rem', color: 'var(--blue-800)', fontWeight: 600 }}>
+                Menunggu Konfirmasi Admin... ⏳
+              </p>
+              <p style={{ fontSize: '0.75rem', color: 'var(--blue-600)', marginTop: 4 }}>
+                Setelah kamu mentransfer, mohon tunggu sebentar. Admin akan mengecek mutasi dan mengkonfirmasi pembayaranmu secara manual. Jangan lupa simpan bukti transfer!
+              </p>
+            </div>
+            
             <button
-              id="btn-simulate-pay"
-              className={`${styles.actionBtn} ${styles.actionBtnPrimary}`}
-              onClick={handlePayMidtrans}
-              disabled={confirming}
+              className="btn btn-ghost btn-sm"
+              style={{ width: '100%', marginTop: 12, color: 'var(--text-muted)' }}
+              onClick={() => window.location.reload()}
             >
-              {confirming ? <span className="spinner" /> : '✅ Bayar Sekarang'}
+              Refresh Halaman
             </button>
           </div>
         )}
