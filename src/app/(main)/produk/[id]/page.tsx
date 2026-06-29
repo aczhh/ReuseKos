@@ -358,6 +358,12 @@ export default function ProductDetailPage() {
                 </button>
               </>
             )}
+            
+            {!isMine && product.is_sold && (
+              <div style={{ textAlign: 'center', padding: '12px', background: 'var(--red-50)', color: 'var(--red-600)', borderRadius: 'var(--radius-md)', fontWeight: 600, border: '1px solid var(--red-200)', marginBottom: 16 }}>
+                Produk ini sudah terjual
+              </div>
+            )}
 
             {isMine && (
               <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginBottom: 16 }}>

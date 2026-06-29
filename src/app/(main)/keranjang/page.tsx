@@ -12,7 +12,7 @@ function formatPrice(n: number) {
   return new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 }).format(n);
 }
 
-const ADMIN_FEE = 2500;
+const ADMIN_FEE = 2000;
 
 export default function KeranjangPage() {
   const { items, initialized, removeFromCart, clearCart, totalPrice, totalItems } = useCart();
@@ -107,6 +107,10 @@ export default function KeranjangPage() {
 
   const handleCheckout = () => {
     if (selectedItems.length === 0) return;
+    if (selectedItems.length > 1) {
+      alert('Maaf, sistem saat ini hanya mendukung pembelian 1 barang per transaksi. Silakan centang satu barang saja untuk checkout.');
+      return;
+    }
     router.push(`/checkout/${selectedItems[0].product.id}`);
   };
 
