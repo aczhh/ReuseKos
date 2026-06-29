@@ -300,7 +300,7 @@ export function Navbar() {
       {/* Top Bar */}
       <div className={styles.topBar}>
         <div className={styles.topBarInner}>
-          {/* Logo */}
+        {/* Logo (desktop only) */}
           <Link href="/beranda" className={styles.logo}>
             <Image 
               src="/logo.png" 
@@ -312,7 +312,19 @@ export function Navbar() {
             />
           </Link>
 
-          {/* Search Bar (desktop) */}
+          {/* Mobile: compact logo + search */}
+          <Link href="/beranda" className={styles.mobileLogo}>
+            <Image 
+              src="/logo.png" 
+              alt="ReuseKos" 
+              width={100} 
+              height={28} 
+              className={styles.mobileLogoImage}
+              priority
+            />
+          </Link>
+
+          {/* Search Bar */}
           <form className={styles.searchForm} onSubmit={handleSearch}>
             <input
               id="navbar-search"
@@ -361,19 +373,6 @@ export function Navbar() {
       {mobileOpen && (
         <div className={styles.mobileMenu} onClick={() => setMobileOpen(false)}>
           <div className={styles.mobileMenuContent} onClick={e => e.stopPropagation()}>
-            {/* Mobile Search */}
-            <form className={styles.mobileSearch} onSubmit={handleSearch}>
-              <input
-                type="search"
-                className={styles.searchInput}
-                placeholder="Cari perabotan..."
-                value={searchQuery}
-                onChange={e => setSearchQuery(e.target.value)}
-              />
-              <button type="submit" className={styles.searchBtn}>
-                <Search size={16} />
-              </button>
-            </form>
 
             {user && profile && (
               <div className={styles.mobileProfileCard}>

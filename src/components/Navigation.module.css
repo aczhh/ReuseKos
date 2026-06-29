@@ -48,6 +48,20 @@
   transform: scale(1.05);
 }
 
+/* Mobile-only compact logo */
+.mobileLogo {
+  display: none;
+  align-items: center;
+  flex-shrink: 0;
+  text-decoration: none;
+}
+
+.mobileLogoImage {
+  height: 28px;
+  width: auto;
+  filter: drop-shadow(0px 0px 4px rgba(255, 255, 255, 0.8));
+}
+
 /* ===========================
    SEARCH BAR
 =========================== */
@@ -733,8 +747,18 @@
     display: flex;
   }
 
-  .searchForm {
+  .logo {
     display: none;
+  }
+
+  .mobileLogo {
+    display: flex;
+  }
+
+  .searchForm {
+    margin: 0 8px;
+    max-width: 100%;
+    flex: 1;
   }
 
   .logoTagline {
