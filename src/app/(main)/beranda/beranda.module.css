@@ -32,6 +32,7 @@
   height: 320px;
   background: rgba(255, 255, 255, 0.03);
   border-radius: 50%;
+  pointer-events: none;
 }
 
 .hero::after {
@@ -43,6 +44,7 @@
   height: 200px;
   background: rgba(255, 255, 255, 0.02);
   border-radius: 50%;
+  pointer-events: none;
 }
 
 .heroInner {
@@ -265,9 +267,7 @@
   padding: 0 var(--content-padding);
   display: flex;
   align-items: center;
-  justify-content: space-between;
   gap: 20px;
-  flex-wrap: wrap;
 }
 
 .locationInfo {

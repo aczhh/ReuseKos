@@ -7,17 +7,18 @@ import { databases, DATABASE_ID, TRANSACTIONS_ID, PRODUCTS_ID, PROFILES_ID, mapD
 import { Query } from 'appwrite';
 import { SPLIT_RATIO } from '@/lib/utils';
 import { useAuth } from '@/lib/AuthContext';
+import styles from './pembayaran.module.css';
 
 function formatPrice(n: number) {
   return new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 }).format(n);
 }
 
-const STATUS_MAP: Record<string, { label: string; color: string; icon: React.ReactNode }> = {
-  pending:     { label: 'Menunggu Pembayaran', color: 'var(--amber-400)', icon: <Clock size={20} /> },
-  paid:        { label: 'Sudah Dibayar', color: 'var(--indigo-400)', icon: <Package size={20} /> },
-  in_delivery: { label: 'Dalam Pengiriman', color: 'var(--indigo-400)', icon: <Truck size={20} /> },
-  completed:   { label: 'Selesai ✅', color: 'var(--emerald-400)', icon: <CheckCircle2 size={20} /> },
-  cancelled:   { label: 'Dibatalkan', color: 'var(--terra-500)', icon: <Clock size={20} /> },
+const STATUS_MAP: Record<string, { label: string; color: string; bg: string; icon: React.ReactNode }> = {
+  pending:     { label: 'Menunggu Pembayaran', color: '#818cf8', bg: 'rgba(99,102,241,0.12)', icon: <Clock size={28} /> },
+  paid:        { label: 'Sudah Dibayar',       color: '#818cf8', bg: 'rgba(99,102,241,0.12)', icon: <Package size={28} /> },
+  in_delivery: { label: 'Dalam Pengiriman',    color: '#818cf8', bg: 'rgba(99,102,241,0.12)', icon: <Truck size={28} /> },
+  completed:   { label: 'Selesai ✅',           color: '#10b981', bg: 'rgba(16,185,129,0.12)', icon: <CheckCircle2 size={28} /> },
+  cancelled:   { label: 'Dibatalkan',           color: '#f87171', bg: 'rgba(248,113,113,0.12)', icon: <Clock size={28} /> },
 };
 
 export default function PembayaranPage() {
@@ -58,22 +59,19 @@ export default function PembayaranPage() {
   const handleConfirmReceived = async () => {
     if (!tx || !tx.product) return;
     setConfirming(true);
-    
-    // Compute seller cut (e.g. 95% of product price)
-    const sellerCut = Math.floor(tx.product.price * SPLIT_RATIO.seller);
-    const adminCut = tx.amount - sellerCut; // MVP approximation
 
-    // Add saldo to seller
+    const sellerCut = Math.floor(tx.product.price * SPLIT_RATIO.seller);
+
     const sellerResponse = await databases.listDocuments(
-      DATABASE_ID, 
-      PROFILES_ID, 
+      DATABASE_ID,
+      PROFILES_ID,
       [Query.equal('user_id', tx.seller_id)]
     );
-    
+
     if (sellerResponse.documents.length > 0) {
       const sellerProfile = sellerResponse.documents[0];
-      await databases.updateDocument(DATABASE_ID, PROFILES_ID, sellerProfile.$id, { 
-        saldo: (sellerProfile.saldo || 0) + sellerCut 
+      await databases.updateDocument(DATABASE_ID, PROFILES_ID, sellerProfile.$id, {
+        saldo: (sellerProfile.saldo || 0) + sellerCut
       });
     }
 
@@ -82,10 +80,25 @@ export default function PembayaranPage() {
     setConfirming(false);
   };
 
-  if (loading || !tx) {
+  if (loading) {
     return (
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '100dvh' }}>
-        <span className="spinner" style={{ width: 32, height: 32, borderWidth: 3 }} />
+        <span className="spinner" style={{ width: 36, height: 36, borderWidth: 3 }} />
+      </div>
+    );
+  }
+
+  if (!tx) {
+    return (
+      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', minHeight: '100dvh', gap: 16, padding: '24px', textAlign: 'center' }}>
+        <div style={{ fontSize: '3rem' }}>⚠️</div>
+        <h2 style={{ fontWeight: 700, fontSize: '1.2rem' }}>Transaksi Tidak Ditemukan</h2>
+        <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem', maxWidth: 400 }}>
+          Transaksi ini tidak ditemukan atau sudah tidak valid.
+        </p>
+        <button className="btn btn-primary" onClick={() => router.push('/beranda')}>
+          Kembali ke Beranda
+        </button>
       </div>
     );
   }
@@ -96,130 +109,102 @@ export default function PembayaranPage() {
   const adminCut = tx.amount - sellerCut;
 
   return (
-    <div style={{ minHeight: '100dvh', padding: '24px 16px', paddingTop: 'calc(var(--navbar-height) + 16px)' }}>
-      {/* Status card */}
-      <div style={{
-        background: 'var(--bg-card)',
-        border: '1px solid var(--border)',
-        borderRadius: 'var(--radius-xl)',
-        padding: '32px 24px',
-        textAlign: 'center',
-        marginBottom: 20,
-      }}>
-        <div style={{
-          width: 64, height: 64, borderRadius: '50%',
-          background: `rgba(${tx.status === 'completed' ? '16,185,129' : '99,102,241'}, 0.15)`,
-          display: 'flex', alignItems: 'center', justifyContent: 'center',
-          margin: '0 auto 16px',
-          color: status.color,
-        }}>
-          {status.icon}
-        </div>
-        <h1 style={{ fontSize: '1.3rem', fontWeight: 800, marginBottom: 4 }}>
-          {status.label}
-        </h1>
-        <p style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>
-          ID Transaksi: #{tx.id.slice(0, 8).toUpperCase()}
-        </p>
-      </div>
+    <div className={styles.page}>
+      <div className={styles.inner}>
 
-      {/* Product info */}
-      <div style={{
-        background: 'var(--bg-card)', border: '1px solid var(--border)',
-        borderRadius: 'var(--radius-lg)', padding: '14px', marginBottom: 16,
-        display: 'flex', gap: 12, alignItems: 'center'
-      }}>
-        <div style={{ fontSize: '2rem' }}>🛋️</div>
-        <div style={{ flex: 1 }}>
-          <p style={{ fontWeight: 700, fontSize: '0.9rem' }}>{product?.title}</p>
-          <p style={{ fontSize: '0.85rem', color: 'var(--text-muted)', marginTop: 2 }}>
-            Metode: {tx.delivery_method === 'pickup' ? '🚶 Ambil Sendiri' : '🚛 Jasa Angkut'}
-          </p>
-        </div>
-        <p style={{
-          fontWeight: 800, fontSize: '1rem',
-          background: 'var(--gradient-brand)',
-          WebkitBackgroundClip: 'text',
-          WebkitTextFillColor: 'transparent',
-        }}>
-          {formatPrice(tx.amount)}
-        </p>
-      </div>
-
-      {/* MOCK payment - Simulasi */}
-      {tx.status === 'pending' && (
-        <div style={{
-          background: 'linear-gradient(135deg, rgba(99,102,241,0.1), rgba(193,68,14,0.08))',
-          border: '1px solid var(--border)',
-          borderRadius: 'var(--radius-lg)',
-          padding: '20px',
-          marginBottom: 16,
-          textAlign: 'center'
-        }}>
-          <p style={{ fontWeight: 700, marginBottom: 8 }}>💳 Simulasi Pembayaran</p>
-          <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)', marginBottom: 16 }}>
-            (MVP) Tap tombol di bawah untuk mensimulasikan pembayaran sukses
-          </p>
-          <div style={{ display: 'flex', gap: 8, justifyContent: 'center', marginBottom: 12 }}>
-            {['QRIS', 'BCA', 'Mandiri', 'OVO'].map(m => (
-              <div key={m} style={{
-                padding: '6px 12px', background: 'var(--bg-surface)',
-                borderRadius: 'var(--radius-sm)', fontSize: '0.75rem',
-                fontWeight: 600, border: '1px solid var(--border)'
-              }}>{m}</div>
-            ))}
+        {/* ===== STATUS CARD ===== */}
+        <div className={styles.statusCard}>
+          <div
+            className={styles.statusIconWrap}
+            style={{ background: status.bg, color: status.color }}
+          >
+            {status.icon}
           </div>
-          <button
-            id="btn-simulate-pay"
-            className="btn btn-primary btn-full"
-            onClick={handleSimulatePay}
-            disabled={confirming}
-          >
-            {confirming ? <span className="spinner" /> : '✅ Simulasikan Pembayaran'}
-          </button>
+          <h1 className={styles.statusTitle} style={{ color: status.color }}>
+            {status.label}
+          </h1>
+          <span className={styles.statusTxId}>
+            ID Transaksi: #{tx.id.slice(0, 8).toUpperCase()}
+          </span>
         </div>
-      )}
 
-      {/* Confirm received */}
-      {tx.status === 'paid' && (
-        <div style={{
-          background: 'rgba(16,185,129,0.08)',
-          border: '1px solid rgba(16,185,129,0.25)',
-          borderRadius: 'var(--radius-lg)',
-          padding: '20px',
-          marginBottom: 16,
-          textAlign: 'center'
-        }}>
-          <p style={{ fontWeight: 700, marginBottom: 8, color: 'var(--emerald-400)' }}>
-            📦 Barang Sudah Diterima?
-          </p>
-          <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)', marginBottom: 16 }}>
-            Tap tombol ini setelah barang tiba. Dana akan otomatis diteruskan ke penjual.
-          </p>
-          <button
-            id="btn-confirm-received"
-            className="btn btn-full"
-            style={{ background: 'var(--emerald-500)', color: 'white' }}
-            onClick={handleConfirmReceived}
-            disabled={confirming}
-          >
-            {confirming ? <span className="spinner" /> : '✅ Pesanan Diterima — Cairkan Dana'}
-          </button>
-          <p style={{ fontSize: '0.7rem', color: 'var(--text-muted)', marginTop: 8 }}>
-            Penjual mendapat {formatPrice(sellerCut)} • Kas admin {formatPrice(adminCut)}
-          </p>
+        {/* ===== PRODUCT CARD ===== */}
+        <div className={styles.productCard}>
+          <div className={styles.productImgWrap}>
+            {product?.photos?.[0]
+              ? <img src={product.photos[0]} alt={product.title} />
+              : <span>🛋️</span>}
+          </div>
+          <div className={styles.productInfo}>
+            <p className={styles.productTitle}>{product?.title}</p>
+            <p className={styles.productMeta}>
+              {tx.delivery_method === 'pickup' ? '🚶 Ambil Sendiri' : '🚛 Jasa Angkut'}
+            </p>
+          </div>
+          <p className={styles.productPrice}>{formatPrice(tx.amount)}</p>
         </div>
-      )}
 
-      {tx.status === 'completed' && (
-        <div className="alert alert-success">
-          <CheckCircle2 size={16} /> Dana sebesar {formatPrice(sellerCut)} telah dikirim ke penjual. Transaksi selesai!
-        </div>
-      )}
+        {/* ===== SIMULASI PEMBAYARAN (status: pending) ===== */}
+        {tx.status === 'pending' && (
+          <div className={`${styles.actionCard} ${styles.pending}`}>
+            <p className={styles.actionCardTitle}>💳 Simulasi Pembayaran</p>
+            <p className={styles.actionCardDesc}>
+              (MVP) Pilih metode dan tap tombol di bawah untuk mensimulasikan pembayaran sukses.
+            </p>
+            <div className={styles.paymentChips}>
+              {['QRIS', 'Bayar COD'].map(m => (
+                <div key={m} className={styles.paymentChip}>{m}</div>
+              ))}
+            </div>
+            <button
+              id="btn-simulate-pay"
+              className={`${styles.actionBtn} ${styles.actionBtnPrimary}`}
+              onClick={handleSimulatePay}
+              disabled={confirming}
+            >
+              {confirming ? <span className="spinner" /> : '✅ Simulasikan Pembayaran'}
+            </button>
+          </div>
+        )}
 
-      <button className="btn btn-ghost btn-full" onClick={() => router.push('/beranda')}>
-        Kembali ke Beranda
-      </button>
+        {/* ===== KONFIRMASI TERIMA BARANG (status: paid) ===== */}
+        {tx.status === 'paid' && (
+          <div className={`${styles.actionCard} ${styles.paid}`}>
+            <p className={styles.actionCardTitle} style={{ color: '#059669' }}>
+              📦 Barang Sudah Diterima?
+            </p>
+            <p className={styles.actionCardDesc}>
+              Tap tombol ini setelah barang tiba di tanganmu. Dana akan otomatis diteruskan ke penjual.
+            </p>
+            <button
+              id="btn-confirm-received"
+              className={`${styles.actionBtn} ${styles.actionBtnSuccess}`}
+              onClick={handleConfirmReceived}
+              disabled={confirming}
+            >
+              {confirming ? <span className="spinner" /> : '✅ Pesanan Diterima — Cairkan Dana'}
+            </button>
+            <p className={styles.splitInfo}>
+              Penjual mendapat {formatPrice(sellerCut)} &bull; Kas admin {formatPrice(adminCut)}
+            </p>
+          </div>
+        )}
+
+        {/* ===== TRANSAKSI SELESAI (status: completed) ===== */}
+        {tx.status === 'completed' && (
+          <div className={styles.successAlert}>
+            <CheckCircle2 size={20} className={styles.successAlertIcon} />
+            <p>
+              Dana sebesar <strong>{formatPrice(sellerCut)}</strong> telah dikirim ke penjual. Transaksi selesai!
+            </p>
+          </div>
+        )}
+
+        {/* ===== TOMBOL KEMBALI ===== */}
+        <button className={styles.backBtn} onClick={() => router.push('/beranda')}>
+          ← Kembali ke Beranda
+        </button>
+      </div>
     </div>
   );
 }

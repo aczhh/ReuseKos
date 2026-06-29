@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { LogOut, Edit2, Package, Wallet, ChevronRight, Store, X, CheckCircle, CreditCard, QrCode, Trash2, Eye } from 'lucide-react';
+import { LogOut, Edit2, Package, ChevronRight, Store, X, CheckCircle, CreditCard, QrCode, Trash2, Eye } from 'lucide-react';
 import { databases, DATABASE_ID, TRANSACTIONS_ID, PRODUCTS_ID, PROFILES_ID, mapDoc, Transaction, Product } from '@/lib/appwrite';
 import { Query } from 'appwrite';
 import { useAuth } from '@/lib/AuthContext';
@@ -200,34 +200,10 @@ export default function ProfilPage() {
             <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)', marginTop: 2 }}>
               {profile.jurusan}
             </p>
-            <span className="badge badge-indigo" style={{ marginTop: 4 }}>
-              {profile.role === 'seller' ? '🏠 Penjual' : profile.role === 'buyer' ? '🎒 Pembeli' : '🚛 Driver'}
-            </span>
           </div>
           <button id="btn-edit-profile" className="btn btn-ghost btn-sm">
             <Edit2 size={14} /> Edit
           </button>
-        </div>
-
-        {/* Saldo */}
-        <div style={{
-          marginTop: 16, padding: '14px 16px',
-          background: 'var(--bg-card)', border: '1px solid var(--border)',
-          borderRadius: 'var(--radius-lg)', display: 'flex', alignItems: 'center', gap: 12
-        }}>
-          <Wallet size={20} style={{ color: 'var(--indigo-400)' }} />
-          <div style={{ flex: 1 }}>
-            <p style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Saldo ReuseKos</p>
-            <p style={{
-              fontWeight: 800, fontSize: '1.1rem',
-              background: 'var(--gradient-brand)',
-              WebkitBackgroundClip: 'text',
-              WebkitTextFillColor: 'transparent',
-            }}>
-              {formatPrice(profile.saldo || 0)}
-            </p>
-          </div>
-          <button className="btn btn-secondary btn-sm">Tarik</button>
         </div>
 
         {/* Quick Menu */}

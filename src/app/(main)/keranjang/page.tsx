@@ -1,10 +1,11 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { Trash2, Minus, Plus, Shield, MapPin, ShoppingBag } from 'lucide-react';
+import { Trash2, Minus, Plus, Shield, MapPin, ShoppingBag, AlertTriangle, X } from 'lucide-react';
 import { useCart } from '@/lib/CartContext';
+import { databases, DATABASE_ID, PRODUCTS_ID, mapDoc, Product } from '@/lib/appwrite';
 import styles from './keranjang.module.css';
 
 function formatPrice(n: number) {
@@ -14,9 +15,69 @@ function formatPrice(n: number) {
 const ADMIN_FEE = 2500;
 
 export default function KeranjangPage() {
-  const { items, removeFromCart, clearCart, totalPrice, totalItems } = useCart();
+  const { items, initialized, removeFromCart, clearCart, totalPrice, totalItems } = useCart();
   const router = useRouter();
   const [selected, setSelected] = useState<Set<string>>(new Set(items.map(i => i.product.id)));
+
+  // State untuk validasi produk
+  const [checking, setChecking] = useState(true);
+  const [removedProducts, setRemovedProducts] = useState<string[]>([]);
+  const [showRemovedAlert, setShowRemovedAlert] = useState(false);
+
+  // Validasi ulang produk di keranjang saat halaman dibuka
+  // Tunggu cart selesai load dari localStorage (initialized === true)
+  useEffect(() => {
+    if (!initialized) return;
+
+    if (items.length === 0) {
+      setChecking(false);
+      return;
+    }
+
+    const validateCartItems = async () => {
+      setChecking(true);
+      const removedTitles: string[] = [];
+
+      for (const item of items) {
+        try {
+          const doc = await databases.getDocument(DATABASE_ID, PRODUCTS_ID, item.product.id);
+          const product = mapDoc<Product>(doc);
+
+          // Jika produk sudah terjual (is_sold: true), hapus dari keranjang
+          if (product.is_sold) {
+            removeFromCart(item.product.id);
+            removedTitles.push(item.product.title);
+          }
+        } catch {
+          // Produk tidak ditemukan di database (sudah dihapus penjual)
+          removeFromCart(item.product.id);
+          removedTitles.push(item.product.title);
+        }
+      }
+
+      if (removedTitles.length > 0) {
+        setRemovedProducts(removedTitles);
+        setShowRemovedAlert(true);
+      }
+
+      setChecking(false);
+    };
+
+    validateCartItems();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [initialized]);
+
+  // Update selected set saat items berubah (misal setelah validasi)
+  useEffect(() => {
+    setSelected(prev => {
+      const currentIds = new Set(items.map(i => i.product.id));
+      const next = new Set<string>();
+      for (const id of prev) {
+        if (currentIds.has(id)) next.add(id);
+      }
+      return next;
+    });
+  }, [items]);
 
   const toggleSelect = (id: string) => {
     setSelected(prev => {
@@ -46,17 +107,47 @@ export default function KeranjangPage() {
 
   const handleCheckout = () => {
     if (selectedItems.length === 0) return;
-    // If 1 item, direct checkout, else go to checkout flow
-    if (selectedItems.length === 1) {
-      router.push(`/checkout/${selectedItems[0].product.id}`);
-    } else {
-      router.push(`/checkout/${selectedItems[0].product.id}`);
-    }
+    router.push(`/checkout/${selectedItems[0].product.id}`);
   };
+
+  // Tampilkan loading saat sedang validasi
+  if (checking) {
+    return (
+      <div className={styles.page}>
+        <div className={styles.inner}>
+          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', minHeight: 300, gap: 16 }}>
+            <span className="spinner" style={{ width: 36, height: 36, borderWidth: 3 }} />
+            <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem' }}>Memeriksa ketersediaan barang...</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className={styles.page}>
       <div className={styles.inner}>
+        {/* Alert produk dihapus */}
+        {showRemovedAlert && removedProducts.length > 0 && (
+          <div className={styles.removedAlert}>
+            <AlertTriangle size={18} className={styles.removedAlertIcon} />
+            <div className={styles.removedAlertContent}>
+              <strong>Beberapa barang tidak tersedia lagi</strong>
+              <p>
+                Barang berikut sudah dihapus atau terjual oleh penjual dan telah dikeluarkan dari keranjangmu:{' '}
+                <em>{removedProducts.join(', ')}</em>
+              </p>
+            </div>
+            <button
+              className={styles.removedAlertClose}
+              onClick={() => setShowRemovedAlert(false)}
+              aria-label="Tutup notifikasi"
+            >
+              <X size={16} />
+            </button>
+          </div>
+        )}
+
         {/* Alert banner */}
         <div className={styles.safetyBanner}>
           <Shield size={16} className={styles.safetyIcon} />
@@ -76,7 +167,11 @@ export default function KeranjangPage() {
           <div className={styles.emptyCart}>
             <ShoppingBag size={64} className={styles.emptyIcon} />
             <h2 className={styles.emptyTitle}>Keranjang Kosong</h2>
-            <p className={styles.emptyDesc}>Belum ada barang di keranjangmu.</p>
+            <p className={styles.emptyDesc}>
+              {removedProducts.length > 0
+                ? 'Semua barang di keranjangmu sudah tidak tersedia lagi.'
+                : 'Belum ada barang di keranjangmu.'}
+            </p>
             <Link href="/cari" className="btn btn-primary">
               Mulai Belanja
             </Link>

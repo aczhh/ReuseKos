@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
-import { Search, ChevronRight, MapPin, Shield } from 'lucide-react';
+import { ChevronRight, MapPin, Shield } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { databases, DATABASE_ID, PRODUCTS_ID, PROFILES_ID, mapDoc, Product } from '@/lib/appwrite';
@@ -57,8 +57,15 @@ function getUniversitasFromEmail(email?: string | null): string | null {
 }
 
 export default function BerandaPage() {
-  const { profile } = useAuth();
+  const { profile, user } = useAuth();
   const router = useRouter();
+
+  const handleJualClick = (e: React.MouseEvent) => {
+    if (!user) {
+      e.preventDefault();
+      router.push('/login');
+    }
+  };
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
@@ -134,7 +141,11 @@ export default function BerandaPage() {
               <Link href="/cari" className={`btn btn-secondary ${styles.heroBtnOutline}`}>
                 Mulai Belanja
               </Link>
-              <Link href="/jual" className={`btn btn-orange ${styles.heroBtnOrange}`}>
+              <Link
+                href="/jual"
+                className={`btn btn-orange ${styles.heroBtnOrange}`}
+                onClick={handleJualClick}
+              >
                 Jual Barang
               </Link>
             </div>
@@ -171,7 +182,7 @@ export default function BerandaPage() {
         </div>
       </section>
 
-      {/* ===== LOCATION + SEARCH BAR ===== */}
+      {/* ===== LOCATION BAR ===== */}
       <section className={styles.locationBar}>
         <div className={styles.locationBarInner}>
           <div className={styles.locationInfo}>
@@ -185,16 +196,6 @@ export default function BerandaPage() {
               );
             })()}
           </div>
-          <form className={styles.miniSearch} onSubmit={handleSearch}>
-            <Search size={14} className={styles.miniSearchIcon} />
-            <input
-              type="search"
-              className={styles.miniSearchInput}
-              placeholder="Cari meja, kursi, atau alat masak..."
-              value={search}
-              onChange={e => setSearch(e.target.value)}
-            />
-          </form>
         </div>
       </section>
 
@@ -216,40 +217,7 @@ export default function BerandaPage() {
         </div>
       </section>
 
-      {/* ===== STATS BANNER ===== */}
-      <section className={styles.statsBanner}>
-        <div className={styles.sectionInner}>
-          <div className={styles.statsRow}>
-            <div className={styles.statItem}>
-              <div className={styles.statIconWrap} style={{ background: 'rgba(45,90,64,0.12)' }}>
-                <span>♻️</span>
-              </div>
-              <div>
-                <div className={styles.statValue}>120kg</div>
-                <div className={styles.statLabel}>Sampah Terkurangi</div>
-              </div>
-            </div>
-            <div className={styles.statItem}>
-              <div className={styles.statIconWrap} style={{ background: 'rgba(249,115,22,0.12)' }}>
-                <span>👥</span>
-              </div>
-              <div>
-                <div className={styles.statValue}>450+</div>
-                <div className={styles.statLabel}>Mahasiswa Aktif</div>
-              </div>
-            </div>
-            <div className={styles.statItem}>
-              <div className={styles.statIconWrap} style={{ background: 'rgba(16,185,129,0.12)' }}>
-                <span>💰</span>
-              </div>
-              <div>
-                <div className={styles.statValue}>Rp 12jt+</div>
-                <div className={styles.statLabel}>Total Budget Dihemat</div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
+
 
       {/* ===== PRODUCT RECOMMENDATIONS ===== */}
       <section className={styles.productsSection}>
@@ -273,7 +241,12 @@ export default function BerandaPage() {
                     <p style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>
                       Jadilah yang pertama berjualan!
                     </p>
-                    <Link href="/jual" className="btn btn-primary btn-sm" style={{ marginTop: 8 }}>
+                    <Link
+                      href="/jual"
+                      className="btn btn-primary btn-sm"
+                      style={{ marginTop: 8 }}
+                      onClick={handleJualClick}
+                    >
                       + Jual Sekarang
                     </Link>
                   </div>
@@ -283,30 +256,32 @@ export default function BerandaPage() {
         </div>
       </section>
 
-      {/* ===== VERIFICATION CTA ===== */}
-      <section className={styles.verifSection}>
-        <div className={styles.sectionInner}>
-          <div className={styles.verifCard}>
-            <div className={styles.verifIcon}>
-              <Shield size={28} />
-            </div>
-            <div className={styles.verifContent}>
-              <h3 className={styles.verifTitle}>Verifikasi Email Kampusmu!</h3>
-              <p className={styles.verifDesc}>
-                Dapatkan akses eksklusif ke harga khusus mahasiswa dan fitur &quot;Bayar di Tempat&quot; dengan memverifikasi email <strong>.edu</strong> atau <strong>.ac.id</strong> milikmu.
-              </p>
-              <div className={styles.verifActions}>
-                <Link href="/login" className="btn btn-primary">
-                  Verifikasi Sekarang
-                </Link>
-                <button className="btn btn-ghost">
-                  Pelajari Lebih Lanjut
-                </button>
+      {/* ===== VERIFICATION CTA — hanya tampil saat belum login ===== */}
+      {!user && (
+        <section className={styles.verifSection}>
+          <div className={styles.sectionInner}>
+            <div className={styles.verifCard}>
+              <div className={styles.verifIcon}>
+                <Shield size={28} />
+              </div>
+              <div className={styles.verifContent}>
+                <h3 className={styles.verifTitle}>Verifikasi Email Kampusmu!</h3>
+                <p className={styles.verifDesc}>
+                  Dapatkan akses eksklusif ke harga khusus mahasiswa dan fitur &quot;Bayar di Tempat&quot; dengan memverifikasi email <strong>.edu</strong> atau <strong>.ac.id</strong> milikmu.
+                </p>
+                <div className={styles.verifActions}>
+                  <Link href="/login" className="btn btn-primary">
+                    Verifikasi Sekarang
+                  </Link>
+                  <button className="btn btn-ghost">
+                    Pelajari Lebih Lanjut
+                  </button>
+                </div>
               </div>
             </div>
           </div>
-        </div>
-      </section>
+        </section>
+      )}
     </div>
   );
 }

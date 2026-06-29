@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
-import { ChevronLeft, Users, Truck, Shield, QrCode, Building2, Wallet, Package } from 'lucide-react';
+import { ChevronLeft, Users, Truck, Shield, QrCode, Package } from 'lucide-react';
 import { databases, DATABASE_ID, PRODUCTS_ID, PROFILES_ID, TRANSACTIONS_ID, mapDoc, Product } from '@/lib/appwrite';
 import { ID, Query } from 'appwrite';
 import { useAuth } from '@/lib/AuthContext';
@@ -15,8 +15,6 @@ function formatPrice(n: number) {
 
 const PAYMENT_METHODS = [
   { id: 'qris', label: 'QRIS', icon: QrCode },
-  { id: 'transfer', label: 'Transfer Bank', icon: Building2 },
-  { id: 'ewallet', label: 'E-Wallet', icon: Wallet },
   { id: 'cod', label: 'Bayar COD', icon: Package },
 ];
 
@@ -59,6 +57,13 @@ export default function CheckoutPage() {
       try {
         const doc = await databases.getDocument(DATABASE_ID, PRODUCTS_ID, id);
         const fetchedProduct = mapDoc<Product>(doc);
+
+        // Cek apakah produk masih tersedia
+        if (fetchedProduct.is_sold) {
+          setError('Produk ini sudah terjual. Silakan pilih barang lain.');
+          setLoading(false);
+          return;
+        }
         
         // Fetch seller profile
         const sellerResponse = await databases.listDocuments(
@@ -71,7 +76,13 @@ export default function CheckoutPage() {
         }
         
         setProduct(fetchedProduct);
-      } catch (err) {
+      } catch (err: any) {
+        // Produk tidak ditemukan (sudah dihapus penjual)
+        if (err?.code === 404 || err?.message?.includes('not found')) {
+          setError('Produk ini sudah tidak tersedia. Mungkin sudah dihapus oleh penjual.');
+        } else {
+          setError('Gagal memuat produk. Silakan coba lagi.');
+        }
         console.error(err);
       }
       setLoading(false);
@@ -84,10 +95,29 @@ export default function CheckoutPage() {
     });
   }, [id]);
 
-  if (loading || !product) {
+  // Jika produk tidak ditemukan, tampilkan error bukan loading spinner
+  if (loading) {
     return (
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '100dvh', paddingTop: 'var(--navbar-height)' }}>
         <span className="spinner" style={{ width: 32, height: 32, borderTopColor: 'var(--green-700)' }} />
+      </div>
+    );
+  }
+
+  if (!product) {
+    return (
+      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', minHeight: '100dvh', paddingTop: 'var(--navbar-height)', gap: 16, padding: '24px', textAlign: 'center' }}>
+        <div style={{ fontSize: '3rem' }}>⚠️</div>
+        <h2 style={{ fontWeight: 700, fontSize: '1.2rem' }}>Produk Tidak Tersedia</h2>
+        <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem', maxWidth: 400 }}>
+          {error || 'Produk ini sudah tidak tersedia atau telah dihapus oleh penjual.'}
+        </p>
+        <button
+          className="btn btn-primary"
+          onClick={() => router.push('/keranjang')}
+        >
+          Kembali ke Keranjang
+        </button>
       </div>
     );
   }
@@ -103,6 +133,21 @@ export default function CheckoutPage() {
     if (!agreeTerms) { setError('Setujui syarat dan ketentuan terlebih dahulu'); return; }
     setSubmitting(true);
     setError('');
+
+    // Validasi ulang: pastikan produk masih tersedia sebelum membuat transaksi
+    try {
+      const doc = await databases.getDocument(DATABASE_ID, PRODUCTS_ID, product.id);
+      const freshProduct = mapDoc<Product>(doc);
+      if (freshProduct.is_sold) {
+        setError('Maaf, produk ini baru saja terjual. Silakan pilih barang lain.');
+        setSubmitting(false);
+        return;
+      }
+    } catch {
+      setError('Produk tidak ditemukan. Mungkin sudah dihapus oleh penjual.');
+      setSubmitting(false);
+      return;
+    }
 
     const sellerCut = Math.floor(product.price * SPLIT_RATIO.seller);
     const driverCut = isDelivery ? Math.floor(ongkir * SPLIT_RATIO.driver) : 0;

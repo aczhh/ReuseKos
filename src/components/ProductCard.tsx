@@ -1,6 +1,9 @@
+'use client';
+
 import Link from 'next/link';
 import { MapPin, Video, Heart, GraduationCap } from 'lucide-react';
 import { Product } from '@/lib/appwrite';
+import { useWishlist } from '@/lib/WishlistContext';
 import styles from './ProductCard.module.css';
 
 interface ProductCardProps {
@@ -38,6 +41,15 @@ export default function ProductCard({ product, distanceKm }: ProductCardProps) {
   const firstPhoto = product.photos?.[0];
   const univBadge = getUnivBadge(product.seller);
   const conditionInfo = getConditionLabel(product.conditions);
+  const { toggleWishlist, isInWishlist } = useWishlist();
+
+  const handleWishlistToggle = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    toggleWishlist(product);
+  };
+
+  const wished = isInWishlist(product.id);
 
   return (
     <Link href={`/produk/${product.id}`} className={styles.card}>
@@ -67,11 +79,11 @@ export default function ProductCard({ product, distanceKm }: ProductCardProps) {
 
         {/* Wishlist button */}
         <button
-          className={styles.wishlistBtn}
-          aria-label="Tambah ke wishlist"
-          onClick={e => { e.preventDefault(); e.stopPropagation(); }}
+          className={`${styles.wishlistBtn} ${wished ? styles.wishlistActive : ''}`}
+          aria-label={wished ? 'Hapus dari wishlist' : 'Tambah ke wishlist'}
+          onClick={handleWishlistToggle}
         >
-          <Heart size={14} />
+          <Heart size={14} fill={wished ? 'currentColor' : 'none'} />
         </button>
 
         {/* Distance badge */}

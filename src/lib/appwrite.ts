@@ -4,7 +4,7 @@ const appwriteEndpoint = process.env.NEXT_PUBLIC_APPWRITE_ENDPOINT || 'https://s
 const appwriteProjectId = process.env.NEXT_PUBLIC_APPWRITE_PROJECT_ID || '6a3b674f001d52269d60';
 
 
-const client = new Client()
+export const client = new Client()
     .setEndpoint(appwriteEndpoint)
     .setProject(appwriteProjectId);
 
@@ -17,6 +17,8 @@ export const DATABASE_ID = 'reusekos_db';
 export const PROFILES_ID = 'profiles';
 export const PRODUCTS_ID = 'products';
 export const TRANSACTIONS_ID = 'transactions';
+export const CHATS_ID = 'chats';
+export const MESSAGES_ID = 'messages';
 export const BUCKET_ID = 'reusekos';
 
 export const isAppwriteConfigured =
@@ -67,6 +69,28 @@ export type Transaction = {
   amount: number;
   delivery_method?: string;
   seller_id: string;
+  created_at: string;
+};
+
+export type Chat = {
+  id: string;
+  buyer_id: string;
+  buyer?: Profile;
+  seller_id: string;
+  seller?: Profile;
+  product_id: string;
+  product?: Product;
+  last_message: string;
+  last_message_time: string;
+  created_at: string;
+};
+
+export type Message = {
+  id: string;
+  chat_id: string;
+  sender_id: string;
+  text: string;
+  is_read: boolean;
   created_at: string;
 };
 

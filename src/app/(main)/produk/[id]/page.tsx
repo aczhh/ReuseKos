@@ -8,8 +8,8 @@ import {
   Star, GraduationCap, X, Edit2, Trash2
 } from 'lucide-react';
 import Link from 'next/link';
-import { databases, DATABASE_ID, PRODUCTS_ID, PROFILES_ID, mapDoc, Product } from '@/lib/appwrite';
-import { Query } from 'appwrite';
+import { databases, DATABASE_ID, PRODUCTS_ID, PROFILES_ID, CHATS_ID, mapDoc, Product } from '@/lib/appwrite';
+import { ID, Query } from 'appwrite';
 import { useAuth } from '@/lib/AuthContext';
 import { useCart } from '@/lib/CartContext';
 import styles from './produk.module.css';
@@ -29,6 +29,7 @@ export default function ProductDetailPage() {
   const [showVideo, setShowVideo] = useState(false);
   const [showCartPopup, setShowCartPopup] = useState(false);
   const [sellerProducts, setSellerProducts] = useState<Product[]>([]);
+  const [startingChat, setStartingChat] = useState(false);
 
   useEffect(() => {
     const fetchProduct = async () => {
@@ -93,13 +94,45 @@ export default function ProductDetailPage() {
   const isMine = user?.id === product.seller_id;
   const inCart = isInCart(product.id);
 
-  const handleWa = () => {
-    if (!seller?.whatsapp) return;
-    const phone = seller.whatsapp.replace(/\D/g, '').replace(/^0/, '62');
-    const msg = encodeURIComponent(
-      `Halo kak ${seller.full_name}, aku tertarik dengan "${product.title}" di ReuseKos. Masih available?`
-    );
-    window.open(`https://wa.me/${phone}?text=${msg}`, '_blank');
+  const handleChat = async () => {
+    if (!user || !seller) {
+      router.push('/login');
+      return;
+    }
+    
+    setStartingChat(true);
+    try {
+      // Cek apakah chat sudah ada untuk produk dan penjual ini
+      const chatRes = await databases.listDocuments(DATABASE_ID, CHATS_ID, [
+        Query.equal('buyer_id', user.$id),
+        Query.equal('seller_id', seller.user_id),
+        Query.equal('product_id', product.id)
+      ]);
+
+      if (chatRes.documents.length > 0) {
+        // Chat sudah ada, langsung redirect
+        router.push(`/pesan/${chatRes.documents[0].$id}`);
+      } else {
+        // Buat chat baru
+        const newChat = await databases.createDocument(
+          DATABASE_ID,
+          CHATS_ID,
+          ID.unique(),
+          {
+            buyer_id: user.$id,
+            seller_id: seller.user_id,
+            product_id: product.id,
+            last_message: '',
+            last_message_time: new Date().toISOString()
+          }
+        );
+        router.push(`/pesan/${newChat.$id}`);
+      }
+    } catch (e) {
+      console.error(e);
+      alert('Gagal memulai chat');
+    }
+    setStartingChat(false);
   };
 
   const handleAddToCart = () => {
@@ -162,9 +195,6 @@ export default function ProductDetailPage() {
             <div className={styles.mainPhoto}>
               {/* Badges on photo */}
               <div className={styles.photoBadges}>
-                <span className={styles.verifiedBadge}>
-                  <GraduationCap size={10} /> Verified Alumni
-                </span>
                 <span className={styles.distanceBadge}>
                   <MapPin size={10} /> 0.4 mi away
                 </span>
@@ -278,8 +308,13 @@ export default function ProductDetailPage() {
                   </div>
                 </div>
                 {!isMine && (
-                  <button className={styles.waBtn} onClick={handleWa}>
-                    <MessageCircle size={14} /> Chat WA
+                  <button 
+                    className={styles.chatBtn} 
+                    onClick={handleChat}
+                    disabled={startingChat}
+                  >
+                    {startingChat ? <span className="spinner" style={{width: 14, height: 14, borderWidth: 2}}></span> : <MessageCircle size={14} />} 
+                    {startingChat ? 'Memuat...' : 'Chat Penjual'}
                   </button>
                 )}
               </div>

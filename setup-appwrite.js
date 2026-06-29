@@ -18,6 +18,8 @@ const DATABASE_ID = 'reusekos_db';
 const PROFILES_ID = 'profiles';
 const PRODUCTS_ID = 'products';
 const TRANSACTIONS_ID = 'transactions';
+const CHATS_ID = 'chats';
+const MESSAGES_ID = 'messages';
 const BUCKET_ID = 'reusekos';
 
 async function setup() {
@@ -41,7 +43,9 @@ async function setup() {
         const collections = [
             { id: PROFILES_ID, name: 'Profiles' },
             { id: PRODUCTS_ID, name: 'Products' },
-            { id: TRANSACTIONS_ID, name: 'Transactions' }
+            { id: TRANSACTIONS_ID, name: 'Transactions' },
+            { id: CHATS_ID, name: 'Chats' },
+            { id: MESSAGES_ID, name: 'Messages' }
         ];
 
         for (const c of collections) {
@@ -101,7 +105,28 @@ async function setup() {
             console.log('✅ Atribut Transactions dibuat.');
         } catch(e) { console.log('⚡ Atribut Transactions mungkin sudah ada.'); }
 
-        // 6. Buat Storage Bucket
+        // 6. Buat Attributes untuk Chats
+        console.log('⏳ Membuat atribut Chats...');
+        try {
+            await databases.createStringAttribute(DATABASE_ID, CHATS_ID, 'buyer_id', 255, true);
+            await databases.createStringAttribute(DATABASE_ID, CHATS_ID, 'seller_id', 255, true);
+            await databases.createStringAttribute(DATABASE_ID, CHATS_ID, 'product_id', 255, true);
+            await databases.createStringAttribute(DATABASE_ID, CHATS_ID, 'last_message', 1000, false);
+            await databases.createDatetimeAttribute(DATABASE_ID, CHATS_ID, 'last_message_time', false);
+            console.log('✅ Atribut Chats dibuat.');
+        } catch(e) { console.log('⚡ Atribut Chats mungkin sudah ada.'); }
+
+        // 7. Buat Attributes untuk Messages
+        console.log('⏳ Membuat atribut Messages...');
+        try {
+            await databases.createStringAttribute(DATABASE_ID, MESSAGES_ID, 'chat_id', 255, true);
+            await databases.createStringAttribute(DATABASE_ID, MESSAGES_ID, 'sender_id', 255, true);
+            await databases.createStringAttribute(DATABASE_ID, MESSAGES_ID, 'text', 5000, true);
+            await databases.createBooleanAttribute(DATABASE_ID, MESSAGES_ID, 'is_read', false, false);
+            console.log('✅ Atribut Messages dibuat.');
+        } catch(e) { console.log('⚡ Atribut Messages mungkin sudah ada.'); }
+
+        // 8. Buat Storage Bucket
         console.log('⏳ Membuat Storage Bucket...');
         try {
             await storage.getBucket(BUCKET_ID);

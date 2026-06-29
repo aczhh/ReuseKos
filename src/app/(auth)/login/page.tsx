@@ -43,7 +43,7 @@ export default function LoginPage() {
     try {
       // Hapus sesi lama jika ada
       try { await account.deleteSession('current'); } catch (_) { }
-      
+
       account.createOAuth2Session(
         OAuthProvider.Google,
         `${window.location.origin}/callback`, // Success URL
@@ -75,42 +75,6 @@ export default function LoginPage() {
       setSent(true);
     } catch (authError: any) {
       setError(authError.message || 'Gagal mengirim kode OTP.');
-    }
-    setLoading(false);
-  };
-
-  const handleDevBypass = async () => {
-    setLoading(true);
-    setError('');
-    try {
-      // Bersihkan sesi lama
-      try { await account.deleteSession('current'); } catch (_) { }
-
-      const devEmail = 'developer@student.ub.ac.id';
-      const devPass = 'rahasia12345';
-
-      // Coba buat akun dev kalau belum ada
-      try {
-        await account.create(ID.unique(), devEmail, devPass);
-      } catch (e: any) {
-        // Abaikan kalau email sudah terdaftar sebelumnya
-      }
-
-      // Buat sesi login tanpa OTP (pakai password khusus dev)
-      await account.createEmailPasswordSession(devEmail, devPass);
-
-      const currentUser = await account.get();
-      const response = await databases.listDocuments(
-        DATABASE_ID,
-        PROFILES_ID,
-        [Query.equal('user_id', currentUser.$id), Query.limit(1)]
-      );
-
-      router.refresh();
-      // Pakai window.location untuk force full reload supaya AuthContext baca sesi baru
-      window.location.href = '/beranda';
-    } catch (err: any) {
-      setError('Bypass Error: ' + (err.message || 'Gagal login bypass'));
     }
     setLoading(false);
   };
@@ -257,7 +221,7 @@ export default function LoginPage() {
               <div style={{ height: 1, backgroundColor: 'var(--border)', margin: '16px 0', position: 'relative' }}>
                 <span style={{ position: 'absolute', top: -10, left: '50%', transform: 'translateX(-50%)', backgroundColor: 'var(--bg-card)', padding: '0 8px', fontSize: '0.75rem', color: 'var(--text-muted)' }}>ATAU</span>
               </div>
-              
+
               <button
                 type="button"
                 onClick={handleGoogleLogin}
@@ -269,14 +233,6 @@ export default function LoginPage() {
                 Lanjutkan dengan Google
               </button>
 
-              <button
-                onClick={handleDevBypass}
-                className="btn btn-secondary btn-full btn-sm"
-                disabled={loading}
-                style={{ borderColor: '#6366f1', color: '#6366f1' }}
-              >
-                🛠️ Bypass Login (Dev Mode)
-              </button>
             </div>
           </>
         ) : (
