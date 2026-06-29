@@ -29,6 +29,29 @@
 /* ===========================
    LOGO
 =========================== */
+/* Mobile-only compact logo (kept for potential future use) */
+.mobileLogo {
+  display: none;
+  align-items: center;
+  flex-shrink: 0;
+  text-decoration: none;
+}
+
+.mobileLogoImage {
+  height: 28px;
+  width: auto;
+  filter: drop-shadow(0px 0px 4px rgba(255, 255, 255, 0.8));
+}
+
+/* Mobile search row — hidden on desktop by default */
+.mobileSearchRow {
+  display: none;
+}
+
+.mobileSearchRowForm {
+  display: none;
+}
+
 .logo {
   display: flex;
   align-items: center;
@@ -46,20 +69,6 @@
 
 .logo:hover .logoImage {
   transform: scale(1.05);
-}
-
-/* Mobile-only compact logo */
-.mobileLogo {
-  display: none;
-  align-items: center;
-  flex-shrink: 0;
-  text-decoration: none;
-}
-
-.mobileLogoImage {
-  height: 28px;
-  width: auto;
-  filter: drop-shadow(0px 0px 4px rgba(255, 255, 255, 0.8));
 }
 
 /* ===========================
@@ -185,8 +194,8 @@
   display: flex;
   align-items: center;
   gap: 6px;
-  background: rgba(255,255,255,0.1);
-  border: 1.5px solid rgba(255,255,255,0.2);
+  background: rgba(255, 255, 255, 0.1);
+  border: 1.5px solid rgba(255, 255, 255, 0.2);
   border-radius: 999px;
   padding: 4px 10px 4px 4px;
   cursor: pointer;
@@ -195,8 +204,8 @@
 }
 
 .avatarBtn:hover {
-  background: rgba(255,255,255,0.18);
-  border-color: rgba(255,255,255,0.35);
+  background: rgba(255, 255, 255, 0.18);
+  border-color: rgba(255, 255, 255, 0.35);
 }
 
 .avatarCircle {
@@ -230,15 +239,22 @@
   background: var(--bg-card);
   border: 1px solid var(--border);
   border-radius: var(--radius-xl);
-  box-shadow: 0 20px 60px rgba(0,0,0,0.35), 0 0 0 1px rgba(255,255,255,0.05);
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.35), 0 0 0 1px rgba(255, 255, 255, 0.05);
   overflow: hidden;
   z-index: 500;
   animation: dropdownIn 0.18s cubic-bezier(0.175, 0.885, 0.32, 1.275);
 }
 
 @keyframes dropdownIn {
-  from { opacity: 0; transform: translateY(-8px) scale(0.97); }
-  to   { opacity: 1; transform: translateY(0) scale(1); }
+  from {
+    opacity: 0;
+    transform: translateY(-8px) scale(0.97);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
 }
 
 .dropdownProfile {
@@ -334,7 +350,7 @@
 }
 
 .dropdownItemSell:hover .dropdownSellContent {
-  background: rgba(249,115,22,0.06);
+  background: rgba(249, 115, 22, 0.06);
 }
 
 .dropdownSellTitle {
@@ -359,7 +375,7 @@
 }
 
 .dropdownItemLogout:hover {
-  background: rgba(248,113,113,0.08);
+  background: rgba(248, 113, 113, 0.08);
   color: #f87171;
 }
 
@@ -374,7 +390,7 @@
   background: var(--bg-card);
   border: 1px solid var(--border);
   border-radius: var(--radius-xl);
-  box-shadow: 0 20px 60px rgba(0,0,0,0.35), 0 0 0 1px rgba(255,255,255,0.05);
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.35), 0 0 0 1px rgba(255, 255, 255, 0.05);
   overflow: hidden;
   z-index: 500;
   animation: dropdownIn 0.18s cubic-bezier(0.175, 0.885, 0.32, 1.275);
@@ -515,7 +531,7 @@
 }
 
 .cartItemRemove:hover {
-  background: rgba(248,113,113,0.1);
+  background: rgba(248, 113, 113, 0.1);
   color: #f87171;
 }
 
@@ -586,7 +602,7 @@
 
 .cartViewAllBtn:hover {
   background: var(--bg-surface);
-  border-color: rgba(255,255,255,0.2);
+  border-color: rgba(255, 255, 255, 0.2);
 }
 
 /* Mobile profile card */
@@ -595,7 +611,7 @@
   align-items: center;
   gap: 12px;
   padding: 16px;
-  background: rgba(255,255,255,0.07);
+  background: rgba(255, 255, 255, 0.07);
   border-radius: var(--radius-md);
   margin-bottom: 8px;
 }
@@ -692,8 +708,13 @@
 }
 
 @keyframes slideLeft {
-  from { transform: translateX(100%); }
-  to   { transform: translateX(0); }
+  from {
+    transform: translateX(100%);
+  }
+
+  to {
+    transform: translateX(0);
+  }
 }
 
 .mobileSearch {
@@ -747,18 +768,14 @@
     display: flex;
   }
 
-  .logo {
+  /* Desktop logo visible, mobileLogo hidden by default (no longer needed) */
+  .mobileLogo {
     display: none;
   }
 
-  .mobileLogo {
-    display: flex;
-  }
-
+  /* Hide search bar from the main top row on mobile */
   .searchForm {
-    margin: 0 8px;
-    max-width: 100%;
-    flex: 1;
+    display: none;
   }
 
   .logoTagline {
@@ -780,6 +797,24 @@
   .topBarInner {
     height: 60px;
     justify-content: space-between;
+  }
+
+  /* Mobile search row — shown below header */
+  .mobileSearchRow {
+    display: flex;
+    background: #203226;
+    padding: 8px var(--content-padding);
+    border-top: 1px solid rgba(255, 255, 255, 0.08);
+  }
+
+  .mobileSearchRowForm {
+    display: flex;
+    align-items: center;
+    width: 100%;
+    background: rgba(255, 255, 255, 0.1);
+    border: 1.5px solid rgba(255, 255, 255, 0.15);
+    border-radius: var(--radius-md);
+    overflow: hidden;
   }
 }
 

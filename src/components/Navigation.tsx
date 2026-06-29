@@ -300,31 +300,19 @@ export function Navbar() {
       {/* Top Bar */}
       <div className={styles.topBar}>
         <div className={styles.topBarInner}>
-        {/* Logo (desktop only) */}
+          {/* Logo */}
           <Link href="/beranda" className={styles.logo}>
-            <Image 
-              src="/logo.png" 
-              alt="ReuseKos Logo" 
-              width={286} 
-              height={70} 
+            <Image
+              src="/logo.png"
+              alt="ReuseKos Logo"
+              width={286}
+              height={70}
               className={styles.logoImage}
               priority
             />
           </Link>
 
-          {/* Mobile: compact logo + search */}
-          <Link href="/beranda" className={styles.mobileLogo}>
-            <Image 
-              src="/logo.png" 
-              alt="ReuseKos" 
-              width={100} 
-              height={28} 
-              className={styles.mobileLogoImage}
-              priority
-            />
-          </Link>
-
-          {/* Search Bar */}
+          {/* Search Bar (desktop only — hidden on mobile via CSS) */}
           <form className={styles.searchForm} onSubmit={handleSearch}>
             <input
               id="navbar-search"
@@ -356,6 +344,22 @@ export function Navbar() {
         </div>
       </div>
 
+      {/* Mobile Search Row — below header, only on mobile */}
+      <div className={styles.mobileSearchRow}>
+        <form className={styles.mobileSearchRowForm} onSubmit={handleSearch}>
+          <input
+            type="search"
+            className={styles.searchInput}
+            placeholder="Cari perabotan..."
+            value={searchQuery}
+            onChange={e => setSearchQuery(e.target.value)}
+          />
+          <button type="submit" className={styles.searchBtn} aria-label="Cari">
+            <Search size={16} />
+          </button>
+        </form>
+      </div>
+
       {/* Category Nav Bar */}
       <nav className={styles.categoryBar}>
         <div className={styles.categoryBarInner}>
@@ -373,6 +377,19 @@ export function Navbar() {
       {mobileOpen && (
         <div className={styles.mobileMenu} onClick={() => setMobileOpen(false)}>
           <div className={styles.mobileMenuContent} onClick={e => e.stopPropagation()}>
+            {/* Mobile Search */}
+            <form className={styles.mobileSearch} onSubmit={handleSearch}>
+              <input
+                type="search"
+                className={styles.searchInput}
+                placeholder="Cari perabotan..."
+                value={searchQuery}
+                onChange={e => setSearchQuery(e.target.value)}
+              />
+              <button type="submit" className={styles.searchBtn}>
+                <Search size={16} />
+              </button>
+            </form>
 
             {user && profile && (
               <div className={styles.mobileProfileCard}>
