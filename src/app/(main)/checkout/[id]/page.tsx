@@ -154,19 +154,30 @@ export default function CheckoutPage() {
     const adminCut = total - sellerCut - (isDelivery ? ongkir : 0);
 
     try {
-      const tx = await databases.createDocument(
-        DATABASE_ID,
-        TRANSACTIONS_ID,
-        ID.unique(),
-        {
-          buyer_id: user.$id,
-          product_id: product.id,
-          seller_id: product.seller_id,
-          status: 'pending',
-          amount: total,
+      // Buat transaksi — delivery_method dikirim kalau ada di schema Appwrite
+      const txData: Record<string, any> = {
+        buyer_id: user.$id,
+        product_id: product.id,
+        seller_id: product.seller_id,
+        status: 'pending',
+        amount: total,
+      };
+
+      // Coba sertakan delivery_method; Appwrite akan tolak kalau atributnya belum ada
+      let tx: any;
+      try {
+        tx = await databases.createDocument(DATABASE_ID, TRANSACTIONS_ID, ID.unique(), {
+          ...txData,
           delivery_method: deliveryMethod,
+        });
+      } catch (e: any) {
+        // Kalau Appwrite belum punya atribut delivery_method, simpan tanpa field itu
+        if (e?.message?.includes('delivery_method')) {
+          tx = await databases.createDocument(DATABASE_ID, TRANSACTIONS_ID, ID.unique(), txData);
+        } else {
+          throw e;
         }
-      );
+      }
 
       // Langsung ubah status produk menjadi terjual (is_sold: true) agar tidak bisa dibeli orang lain
       // Jika pembeli batal bayar, admin bisa membatalkan transaksi nanti.
