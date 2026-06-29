@@ -101,8 +101,6 @@ export default function PembayaranPage() {
 
   const status = STATUS_MAP[tx.status] || STATUS_MAP.pending;
   const product = tx.product as any;
-  const sellerCut = Math.floor((product?.price || 0) * SPLIT_RATIO.seller);
-  const adminCut = tx.amount - sellerCut;
 
   return (
     <div className={styles.page}>
@@ -198,10 +196,11 @@ export default function PembayaranPage() {
         {tx.status === 'paid' && (
           <div className={`${styles.actionCard} ${styles.paid}`}>
             <p className={styles.actionCardTitle} style={{ color: '#059669' }}>
-              📦 Barang Sudah Diterima?
+              <Package size={18} style={{ display: 'inline', marginRight: 6 }} />
+              Barang Sudah Diterima?
             </p>
             <p className={styles.actionCardDesc}>
-              Tap tombol ini setelah barang tiba di tanganmu. Dana akan otomatis diteruskan ke penjual.
+              Tekan tombol di bawah setelah barang tiba di tanganmu untuk menyelesaikan transaksi.
             </p>
             <button
               id="btn-confirm-received"
@@ -209,11 +208,8 @@ export default function PembayaranPage() {
               onClick={handleConfirmReceived}
               disabled={confirming}
             >
-              {confirming ? <span className="spinner" /> : '✅ Pesanan Diterima — Cairkan Dana'}
+              {confirming ? <span className="spinner" /> : 'Pesanan Sudah Diterima'}
             </button>
-            <p className={styles.splitInfo}>
-              Penjual mendapat {formatPrice(sellerCut)} &bull; Kas admin {formatPrice(adminCut)}
-            </p>
           </div>
         )}
 
@@ -221,9 +217,7 @@ export default function PembayaranPage() {
         {tx.status === 'completed' && (
           <div className={styles.successAlert}>
             <CheckCircle2 size={20} className={styles.successAlertIcon} />
-            <p>
-              Dana sebesar <strong>{formatPrice(sellerCut)}</strong> telah dikirim ke penjual. Transaksi selesai!
-            </p>
+            <p>Transaksi berhasil diselesaikan. Terima kasih sudah berbelanja di ReuseKos! 🎉</p>
           </div>
         )}
 
