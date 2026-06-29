@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
-import { ChevronRight, MapPin, Shield } from 'lucide-react';
+import { ChevronRight, MapPin, Shield, Sofa, Package, Coffee, Droplet } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { databases, DATABASE_ID, PRODUCTS_ID, PROFILES_ID, mapDoc, Product } from '@/lib/appwrite';
@@ -16,11 +16,11 @@ function formatPrice(n: number) {
 }
 
 const QUICK_CATS = [
-  { label: 'Meja', icon: '🪑', cat: 'Meja & Kursi' },
-  { label: 'Kursi', icon: '🪑', cat: 'Meja & Kursi' },
-  { label: 'Rice Cooker', icon: '🍚', cat: 'Peralatan Masak' },
-  { label: 'Dispenser', icon: '💧', cat: 'Kipas & AC Portable' },
-  { label: 'Lainnya', icon: '📦', cat: 'Lainnya' },
+  { label: 'Meja', icon: <Sofa size={18} />, cat: 'Meja & Kursi' },
+  { label: 'Kursi', icon: <Sofa size={18} />, cat: 'Meja & Kursi' },
+  { label: 'Rice Cooker', icon: <Coffee size={18} />, cat: 'Peralatan Masak' },
+  { label: 'Dispenser', icon: <Droplet size={18} />, cat: 'Kipas & AC Portable' },
+  { label: 'Lainnya', icon: <Package size={18} />, cat: 'Lainnya' },
 ];
 
 // Peta domain email kampus → nama universitas
@@ -202,7 +202,7 @@ export default function BerandaPage() {
                         <div className={styles.heroProductImg}>
                           {p.photos?.[0]
                             ? <img src={p.photos[0]} alt={p.title} style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: 'var(--radius-md)' }} />
-                            : '🛋️'
+                            : <Package size={24} style={{ color: 'var(--text-muted)' }} />
                           }
                         </div>
                         <div className={styles.heroProductInfo}>
@@ -215,14 +215,14 @@ export default function BerandaPage() {
                   ) : (
                     <>
                       <div className={styles.heroProductPreview}>
-                        <div className={styles.heroProductImg}>🪑</div>
+                        <div className={styles.heroProductImg}><Sofa size={24} style={{ color: 'var(--text-muted)' }} /></div>
                         <div className={styles.heroProductInfo}>
                           <div className={styles.heroProductName}>Meja Belajar Kayu Jati</div>
                           <div className={styles.heroProductPrice}>Rp 250.000</div>
                         </div>
                       </div>
                       <div className={styles.heroProductPreview}>
-                        <div className={styles.heroProductImg}>🍚</div>
+                        <div className={styles.heroProductImg}><Coffee size={24} style={{ color: 'var(--text-muted)' }} /></div>
                         <div className={styles.heroProductInfo}>
                           <div className={styles.heroProductName}>Rice Cooker Philips 2L</div>
                           <div className={styles.heroProductPrice}>Rp 350.000</div>

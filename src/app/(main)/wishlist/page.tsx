@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { Heart, ShoppingCart, Trash2 } from 'lucide-react';
+import { Heart, ShoppingCart, Trash2, Package } from 'lucide-react';
 import { useWishlist } from '@/lib/WishlistContext';
 import { useCart } from '@/lib/CartContext';
 import styles from './wishlist.module.css';
@@ -55,7 +55,7 @@ export default function WishlistPage() {
                 {product.photos?.[0] ? (
                   <img src={product.photos[0]} alt={product.title} className={styles.cardImage} />
                 ) : (
-                  <div className={styles.cardImagePlaceholder}>🛋️</div>
+                  <div className={styles.cardImagePlaceholder}><Package size={32} style={{ color: 'var(--text-muted)' }} /></div>
                 )}
               </Link>
               <div className={styles.cardBody}>

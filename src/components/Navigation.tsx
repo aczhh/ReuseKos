@@ -66,7 +66,9 @@ function CartDropdown() {
 
           {items.length === 0 ? (
             <div className={styles.cartEmpty}>
-              <div className={styles.cartEmptyIcon}>🛒</div>
+              <div className={styles.cartEmptyIcon} style={{ fontSize: 0, padding: 8 }}>
+                <ShoppingCart size={48} style={{ color: 'var(--gray-300)' }} />
+              </div>
               <p className={styles.cartEmptyText}>Keranjang belanja saat ini kosong</p>
               <Link href="/beranda" className={styles.cartEmptyLink} onClick={() => setOpen(false)}>
                 Mulai Belanja
@@ -80,7 +82,7 @@ function CartDropdown() {
                     <div className={styles.cartItemImg}>
                       {item.product.photos?.[0]
                         ? <img src={item.product.photos[0]} alt={item.product.title} />
-                        : <span>🛋️</span>}
+                        : <Package size={24} style={{ color: 'var(--text-muted)' }} />}
                     </div>
                     <div className={styles.cartItemInfo}>
                       <p className={styles.cartItemName}>{item.product.title}</p>
@@ -226,7 +228,7 @@ function AccountDropdown() {
                 <p className={styles.dropdownSellTitle}>Mulai Berjualan</p>
                 <p className={styles.dropdownSellSub}>Jual perabot kosmu, dapat uang!</p>
               </div>
-              <span className={styles.dropdownSellEmoji}>🛋️</span>
+              <span className={styles.dropdownSellEmoji} style={{ fontSize: 0 }}><Store size={24} style={{ color: 'var(--green-600)' }} /></span>
             </div>
           </Link>
 

@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { MapPin, Video, Heart, GraduationCap } from 'lucide-react';
+import { MapPin, Video, Heart, GraduationCap, Package } from 'lucide-react';
 import { Product } from '@/lib/appwrite';
 import { useWishlist } from '@/lib/WishlistContext';
 import styles from './ProductCard.module.css';
@@ -63,7 +63,7 @@ export default function ProductCard({ product, distanceKm }: ProductCardProps) {
           />
         ) : (
           <div className={styles.imagePlaceholder}>
-            <span>🛋️</span>
+            <Package size={32} style={{ color: 'var(--text-muted)' }} />
           </div>
         )}
 

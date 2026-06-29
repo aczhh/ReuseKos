@@ -14,11 +14,11 @@ function formatPrice(n: number) {
 }
 
 const STATUS_LABEL: Record<string, string> = {
-  pending: '🕐 Menunggu Bayar',
-  paid: '📦 Sudah Dibayar',
-  in_delivery: '🚛 Dikirim',
-  completed: '✅ Selesai',
-  cancelled: '❌ Dibatalkan',
+  pending: 'Menunggu Bayar',
+  paid: 'Sudah Dibayar',
+  in_delivery: 'Dikirim',
+  completed: 'Selesai',
+  cancelled: 'Dibatalkan',
 };
 
 export default function ProfilPage() {
@@ -400,7 +400,7 @@ export default function ProfilPage() {
                       transition: 'all var(--transition-fast)',
                     }}
                   >
-                    <div style={{ fontSize: '1.5rem' }}>🛋️</div>
+                    <div style={{ fontSize: 0 }}><Package size={24} style={{ color: 'var(--text-muted)' }} /></div>
                     <div style={{ flex: 1 }}>
                       <p style={{ fontSize: '0.875rem', fontWeight: 600 }}>
                         {product?.title || 'Produk'}
@@ -421,7 +421,7 @@ export default function ProfilPage() {
             </div>
           ) : (
             <div className="empty-state">
-              <div className="empty-state-icon">📭</div>
+              <div className="empty-state-icon" style={{ fontSize: 0, padding: 8 }}><Package size={48} style={{ color: 'var(--gray-300)' }} /></div>
               <p style={{ fontWeight: 600 }}>Belum ada pembelian</p>
               <p style={{ fontSize: '0.8rem' }}>Yuk cari perabot kos!</p>
             </div>
@@ -448,16 +448,16 @@ export default function ProfilPage() {
                     opacity: p.is_sold ? 0.6 : 1,
                   }}
                 >
-                  <div style={{ fontSize: '1.5rem' }}>
+                  <div style={{ fontSize: 0 }}>
                     {p.photos?.[0]
                       ? <img src={p.photos[0]} alt={p.title} style={{ width: 40, height: 40, borderRadius: 8, objectFit: 'cover' }} />
-                      : '🛋️'
+                      : <Package size={24} style={{ color: 'var(--text-muted)' }} />
                     }
                   </div>
                   <div style={{ flex: 1 }}>
                     <p style={{ fontSize: '0.875rem', fontWeight: 600 }}>{p.title}</p>
                     <p style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginTop: 2 }}>
-                      {p.is_sold ? '✅ Terjual' : '🟢 Aktif dijual'} • {formatPrice(p.price)}
+                      {p.is_sold ? 'Terjual' : 'Aktif dijual'} • {formatPrice(p.price)}
                     </p>
                   </div>
                   <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>

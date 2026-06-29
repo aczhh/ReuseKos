@@ -5,7 +5,7 @@ import { useRouter, useParams } from 'next/navigation';
 import {
   ChevronLeft, ChevronRight, Video, MapPin,
   MessageCircle, ShoppingCart, Heart, AlertTriangle, Check,
-  Star, GraduationCap, X, Edit2, Trash2
+  Star, GraduationCap, X, Edit2, Trash2, Package
 } from 'lucide-react';
 import Link from 'next/link';
 import { databases, DATABASE_ID, PRODUCTS_ID, PROFILES_ID, CHATS_ID, mapDoc, Product } from '@/lib/appwrite';
@@ -205,7 +205,7 @@ export default function ProductDetailPage() {
               ) : (
                 photos.length > 0
                   ? <img src={photos[photoIndex]} alt={product.title} className={styles.mainImg} />
-                  : <div className={styles.photoPlaceholder}>🛋️</div>
+                  : <div className={styles.photoPlaceholder} style={{ fontSize: 0 }}><Package size={48} style={{ color: 'var(--text-muted)' }} /></div>
               )}
 
               {photos.length > 1 && !showVideo && (
@@ -428,7 +428,7 @@ export default function ProductDetailPage() {
                   <div className={styles.otherImg}>
                     {p.photos?.[0]
                       ? <img src={p.photos[0]} alt={p.title} />
-                      : <span>🛋️</span>}
+                      : <Package size={24} style={{ color: 'var(--text-muted)' }} />}
                   </div>
                   <div className={styles.otherInfo}>
                     <span className={styles.otherCat}>{p.category.toUpperCase()}</span>

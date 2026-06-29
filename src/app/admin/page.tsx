@@ -382,7 +382,7 @@ export default function AdminPage() {
                 <div style={{ width: 48, height: 48, borderRadius: 'var(--radius-md)', overflow: 'hidden', flexShrink: 0, background: 'var(--gray-100)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                   {p.photos?.[0]
                     ? <img src={p.photos[0]} alt={p.title} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                    : <span style={{ fontSize: '1.5rem' }}>🛋️</span>
+                    : <Package size={24} style={{ color: 'var(--text-muted)' }} />
                   }
                 </div>
                 <div style={{ flex: 1, minWidth: 0 }}>

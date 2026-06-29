@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
-import { CheckCircle2, Clock, Package, Truck, QrCode } from 'lucide-react';
+import { CheckCircle2, Clock, Package, Truck, QrCode, Navigation, GraduationCap, Building, CameraOff, XCircle } from 'lucide-react';
 import { databases, DATABASE_ID, TRANSACTIONS_ID, PRODUCTS_ID, PROFILES_ID, mapDoc, Transaction, Product } from '@/lib/appwrite';
 import { Query } from 'appwrite';
 import { SPLIT_RATIO } from '@/lib/utils';
@@ -129,12 +129,16 @@ export default function PembayaranPage() {
           <div className={styles.productImgWrap}>
             {product?.photos?.[0]
               ? <img src={product.photos[0]} alt={product.title} />
-              : <span>🛋️</span>}
+              : <Package size={24} style={{ color: 'var(--text-muted)' }} />}
           </div>
           <div className={styles.productInfo}>
             <p className={styles.productTitle}>{product?.title}</p>
             <p className={styles.productMeta}>
-              {tx.delivery_method === 'pickup' ? '🚶 Ambil Sendiri' : '🚛 Jasa Angkut'}
+              <span style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+                {tx.delivery_method === 'pickup' ? <><Navigation size={12}/> Ambil Langsung</> : 
+                 tx.delivery_method === 'campus' ? <><GraduationCap size={12}/> Bertemu di Kampus</> : 
+                 <><Building size={12}/> Titip Pos Satpam</>}
+              </span>
             </p>
           </div>
           <p className={styles.productPrice}>{formatPrice(tx.amount)}</p>
@@ -159,7 +163,7 @@ export default function PembayaranPage() {
                     const target = e.target as HTMLImageElement;
                     target.style.display = 'none';
                     if (target.parentElement) {
-                      target.parentElement.innerHTML = '<div style="text-align:center; color: var(--text-muted);"><span style="font-size:3rem">📷</span><br/>Gambar QRIS (qris-admin.png) belum diupload ke folder public.</div>';
+                      target.parentElement.innerHTML = '<div style="text-align:center; color: var(--text-muted);"><svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3l-2.5-3z"/><line x1="2" y1="2" x2="22" y2="22"/></svg><br/>Gambar QRIS (qris-admin.png) belum diupload ke folder public.</div>';
                     }
                   }}
                 />
@@ -171,8 +175,8 @@ export default function PembayaranPage() {
             </div>
 
             <div style={{ padding: '12px', background: 'var(--blue-50)', border: '1px solid var(--blue-200)', borderRadius: 'var(--radius-md)', textAlign: 'center' }}>
-              <p style={{ fontSize: '0.85rem', color: 'var(--blue-800)', fontWeight: 600 }}>
-                Menunggu Konfirmasi... ⏳
+              <p style={{ fontSize: '0.85rem', color: 'var(--blue-800)', fontWeight: 600, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}>
+                <Clock size={16} /> Menunggu Konfirmasi...
               </p>
               <p style={{ fontSize: '0.75rem', color: 'var(--blue-600)', marginTop: 4 }}>
                 Mohon tunggu sebentar. Jangan lupa simpan bukti transfer!

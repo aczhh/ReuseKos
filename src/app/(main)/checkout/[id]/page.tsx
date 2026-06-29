@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
-import { ChevronLeft, Users, Truck, Shield, QrCode, Package } from 'lucide-react';
+import { ChevronLeft, Users, Truck, Shield, QrCode, Package, MapPin, Navigation, GraduationCap, Building, AlertCircle, Info } from 'lucide-react';
 import { databases, DATABASE_ID, PRODUCTS_ID, PROFILES_ID, TRANSACTIONS_ID, mapDoc, Product } from '@/lib/appwrite';
 import { ID, Query } from 'appwrite';
 import { useAuth } from '@/lib/AuthContext';
@@ -23,19 +23,19 @@ const PICKUP_METHODS = [
     id: 'pickup',
     label: 'Ambil langsung',
     desc: 'Temui penjual di lokasi yang ditentukan.',
-    icon: '🚶',
+    icon: Navigation,
   },
   {
     id: 'campus',
     label: 'Bertemu di kampus',
     desc: 'Gedung Bersama Lt. 1, Universitas Brawijaya.',
-    icon: '🎓',
+    icon: GraduationCap,
   },
   {
     id: 'deliver',
     label: 'Titip pos satpam',
     desc: 'Barang dititipkan di pos satpam fakultas terdekat.',
-    icon: '👮',
+    icon: Building,
   },
 ];
 
@@ -107,7 +107,7 @@ export default function CheckoutPage() {
   if (!product) {
     return (
       <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', minHeight: '100dvh', paddingTop: 'var(--navbar-height)', gap: 16, padding: '24px', textAlign: 'center' }}>
-        <div style={{ fontSize: '3rem' }}>⚠️</div>
+        <AlertCircle size={48} style={{ color: 'var(--red-500)' }} />
         <h2 style={{ fontWeight: 700, fontSize: '1.2rem' }}>Produk Tidak Tersedia</h2>
         <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem', maxWidth: 400 }}>
           {error || 'Produk ini sudah tidak tersedia atau telah dihapus oleh penjual.'}
@@ -231,7 +231,7 @@ export default function CheckoutPage() {
             <div className={styles.card}>
               <div className={styles.cardTitleRow}>
                 <h2 className={styles.cardTitle}><Truck size={18} /> Metode Pengambilan Barang</h2>
-                <span className={styles.distanceBadge}>📍 {distanceKm} km</span>
+                <span className={styles.distanceBadge}><MapPin size={14} /> {distanceKm} km</span>
               </div>
 
               <div className={styles.pickupOptions}>
@@ -249,16 +249,16 @@ export default function CheckoutPage() {
                       <p className={styles.pickupLabel}>{m.label}</p>
                       <p className={styles.pickupDesc}>{m.desc}</p>
                     </div>
-                    <span className={styles.pickupIcon}>{m.icon}</span>
+                    <span className={styles.pickupIcon}><m.icon size={20} /></span>
                   </div>
                 ))}
               </div>
 
               {/* Seller location info */}
               <div className={styles.sellerLocInfo}>
-                <span>ℹ️</span>
+                <Info size={20} style={{ color: 'var(--blue-600)' }} />
                 <p>
-                  <strong>Lokasi Penjual:</strong> 📍 {product.address || 'Universitas Brawijaya, Malang'}.
+                  <strong>Lokasi Penjual:</strong> <MapPin size={14} style={{ display: 'inline', margin: '0 2px', verticalAlign: 'text-bottom' }} /> {product.address || 'Universitas Brawijaya, Malang'}.
                   Hubungi penjual setelah pembayaran dikonfirmasi untuk koordinasi lebih lanjut.
                 </p>
               </div>
@@ -296,7 +296,7 @@ export default function CheckoutPage() {
                 <div className={styles.orderItemImg}>
                   {product.photos?.[0]
                     ? <img src={product.photos[0]} alt={product.title} />
-                    : <span>🛋️</span>}
+                    : <Package size={24} style={{ color: 'var(--text-muted)' }} />}
                 </div>
                 <div className={styles.orderItemInfo}>
                   <p className={styles.orderItemName}>{product.title}</p>

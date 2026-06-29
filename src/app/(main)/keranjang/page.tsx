@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { Trash2, Minus, Plus, Shield, MapPin, ShoppingBag, AlertTriangle, X } from 'lucide-react';
+import { Trash2, Minus, Plus, Shield, MapPin, ShoppingBag, AlertTriangle, X, Package } from 'lucide-react';
 import { useCart } from '@/lib/CartContext';
 import { databases, DATABASE_ID, PRODUCTS_ID, mapDoc, Product } from '@/lib/appwrite';
 import styles from './keranjang.module.css';
@@ -216,7 +216,7 @@ export default function KeranjangPage() {
                   <div className={styles.itemImg}>
                     {item.product.photos?.[0]
                       ? <img src={item.product.photos[0]} alt={item.product.title} />
-                      : <span>🛋️</span>}
+                      : <Package size={24} style={{ color: 'var(--text-muted)' }} />}
                     <span className={styles.itemUniv}>UB</span>
                   </div>
 
