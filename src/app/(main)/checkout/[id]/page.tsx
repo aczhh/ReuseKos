@@ -32,7 +32,7 @@ const PICKUP_METHODS = [
     icon: GraduationCap,
   },
   {
-    id: 'deliver',
+    id: 'security',
     label: 'Titip pos satpam',
     desc: 'Barang dititipkan di pos satpam fakultas terdekat.',
     icon: Building,
@@ -122,7 +122,7 @@ export default function CheckoutPage() {
     );
   }
 
-  const isDelivery = deliveryMethod === 'deliver';
+  const isDelivery = false; // Semua metode saat ini adalah self-pickup, tidak ada ongkir
   const ongkir = isDelivery ? calculateOngkir(distanceKm) : 0;
   const adminFee = 2000;
   const subtotal = product.price;
@@ -164,6 +164,7 @@ export default function CheckoutPage() {
           seller_id: product.seller_id,
           status: 'pending',
           amount: total,
+          delivery_method: deliveryMethod,
         }
       );
 

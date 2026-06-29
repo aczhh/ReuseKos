@@ -137,7 +137,8 @@ export default function PembayaranPage() {
               <span style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
                 {tx.delivery_method === 'pickup' ? <><Navigation size={12}/> Ambil Langsung</> : 
                  tx.delivery_method === 'campus' ? <><GraduationCap size={12}/> Bertemu di Kampus</> : 
-                 <><Building size={12}/> Titip Pos Satpam</>}
+                 tx.delivery_method === 'security' ? <><Building size={12}/> Titip Pos Satpam</> :
+                 <span>Pilih Metode</span>}
               </span>
             </p>
           </div>
