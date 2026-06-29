@@ -166,6 +166,11 @@ export default function CheckoutPage() {
           amount: total,
         }
       );
+
+      // Langsung ubah status produk menjadi terjual (is_sold: true) agar tidak bisa dibeli orang lain
+      // Jika pembeli batal bayar, admin bisa membatalkan transaksi nanti.
+      await databases.updateDocument(DATABASE_ID, PRODUCTS_ID, product.id, { is_sold: true });
+
       router.push(`/pembayaran/${tx.$id}`);
     } catch (txErr: any) {
       setError(txErr.message);

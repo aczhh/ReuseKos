@@ -38,7 +38,7 @@ export default function AdminPage() {
   const handleAdminLogin = (e: React.FormEvent) => {
     e.preventDefault();
     // Simple hardcoded password for the owner
-    if (passwordInput === 'admin123') {
+    if (passwordInput === 'adminKece.1') {
       setIsAdminAuth(true);
       sessionStorage.setItem('adminAuth', 'true');
     } else {
@@ -158,6 +158,20 @@ export default function AdminPage() {
       setTransactions(prev => prev.map(t => t.id === tx.id ? { ...t, status: 'completed' } : t));
     } catch (e: any) {
       alert('Gagal mengkonfirmasi selesai: ' + e.message);
+    }
+    setActionLoading(null);
+  };
+
+  const handleCancelTransaction = async (tx: Transaction) => {
+    if (!confirm('Yakin ingin membatalkan pesanan ini? Barang akan kembali tersedia untuk dibeli.')) return;
+    setActionLoading(tx.id);
+    try {
+      await databases.updateDocument(DATABASE_ID, TRANSACTIONS_ID, tx.id, { status: 'cancelled' });
+      await databases.updateDocument(DATABASE_ID, PRODUCTS_ID, tx.product_id, { is_sold: false });
+      
+      setTransactions(prev => prev.map(t => t.id === tx.id ? { ...t, status: 'cancelled' } : t));
+    } catch (e: any) {
+      alert('Gagal membatalkan transaksi: ' + e.message);
     }
     setActionLoading(null);
   };
@@ -305,14 +319,24 @@ export default function AdminPage() {
 
                 <div style={{ display: 'flex', gap: 8, marginTop: 4 }}>
                   {tx.status === 'pending' && (
-                    <button 
-                      className="btn btn-primary btn-sm" 
-                      onClick={() => handleConfirmPayment(tx)}
-                      disabled={actionLoading === tx.id}
-                      style={{ flex: 1 }}
-                    >
-                      {actionLoading === tx.id ? <span className="spinner" /> : <><CheckCircle size={14}/> Konfirmasi Pembayaran</>}
-                    </button>
+                    <>
+                      <button 
+                        className="btn btn-primary btn-sm" 
+                        onClick={() => handleConfirmPayment(tx)}
+                        disabled={actionLoading === tx.id}
+                        style={{ flex: 1 }}
+                      >
+                        {actionLoading === tx.id ? <span className="spinner" /> : <><CheckCircle size={14}/> Konfirmasi Bayar</>}
+                      </button>
+                      <button 
+                        className="btn btn-danger btn-sm" 
+                        onClick={() => handleCancelTransaction(tx)}
+                        disabled={actionLoading === tx.id}
+                        style={{ flex: 1, background: 'var(--red-500)' }}
+                      >
+                        {actionLoading === tx.id ? <span className="spinner" /> : <><X size={14}/> Batalkan Pesanan</>}
+                      </button>
+                    </>
                   )}
                   {tx.status === 'paid' && (
                     <button 

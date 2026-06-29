@@ -143,9 +143,9 @@ export default function PembayaranPage() {
         {/* ===== PEMBAYARAN MANUAL QRIS (status: pending) ===== */}
         {tx.status === 'pending' && (
           <div className={`${styles.actionCard} ${styles.pending}`}>
-            <p className={styles.actionCardTitle}>💳 Pembayaran (Manual Transfer)</p>
+            <p className={styles.actionCardTitle}>Pembayaran</p>
             <p className={styles.actionCardDesc}>
-              Silakan lakukan pembayaran sebesar <strong>{formatPrice(tx.amount)}</strong> dengan menscan QRIS di bawah ini. Uangmu akan disimpan dengan aman oleh Admin sampai barang tiba di tujuan.
+              Silakan lakukan pembayaran sebesar <strong>{formatPrice(tx.amount)}</strong>
             </p>
             
             <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', margin: '20px 0', gap: 12 }}>
@@ -159,7 +159,7 @@ export default function PembayaranPage() {
                     const target = e.target as HTMLImageElement;
                     target.style.display = 'none';
                     if (target.parentElement) {
-                      target.parentElement.innerHTML = '<div style="text-align:center; color: var(--text-muted);"><span style="font-size:3rem">📷</span><br/>Gambar QRIS Admin (qris-admin.png) belum diupload ke folder public.</div>';
+                      target.parentElement.innerHTML = '<div style="text-align:center; color: var(--text-muted);"><span style="font-size:3rem">📷</span><br/>Gambar QRIS (qris-admin.png) belum diupload ke folder public.</div>';
                     }
                   }}
                 />
@@ -172,10 +172,10 @@ export default function PembayaranPage() {
 
             <div style={{ padding: '12px', background: 'var(--blue-50)', border: '1px solid var(--blue-200)', borderRadius: 'var(--radius-md)', textAlign: 'center' }}>
               <p style={{ fontSize: '0.85rem', color: 'var(--blue-800)', fontWeight: 600 }}>
-                Menunggu Konfirmasi Admin... ⏳
+                Menunggu Konfirmasi... ⏳
               </p>
               <p style={{ fontSize: '0.75rem', color: 'var(--blue-600)', marginTop: 4 }}>
-                Setelah kamu mentransfer, mohon tunggu sebentar. Admin akan mengecek mutasi dan mengkonfirmasi pembayaranmu secara manual. Jangan lupa simpan bukti transfer!
+                Mohon tunggu sebentar. Jangan lupa simpan bukti transfer!
               </p>
             </div>
             
