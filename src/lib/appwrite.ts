@@ -67,7 +67,7 @@ export type Transaction = {
   buyer?: Profile;
   product_id: string;
   product?: Product;
-  status: 'pending' | 'paid' | 'completed';
+  status: 'pending' | 'paid' | 'in_delivery' | 'completed' | 'cancelled';
   amount: number;
   delivery_method?: string;
   seller_id: string;
