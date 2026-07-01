@@ -64,7 +64,8 @@ function getUniversitasFromEmail(email?: string | null): string | null {
 export default function BerandaPage() {
   const { profile, user } = useAuth();
   const router = useRouter();
-  const adminMode = typeof window !== 'undefined' ? isAdminViewMode() : false;
+  const [adminMode, setAdminMode] = useState(false);
+  useEffect(() => { setAdminMode(isAdminViewMode()); }, []);
 
   const handleJualClick = (e: React.MouseEvent) => {
     if (!user) {

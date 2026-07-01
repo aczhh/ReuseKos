@@ -143,6 +143,11 @@ export default function CheckoutPage() {
         setSubmitting(false);
         return;
       }
+      if (freshProduct.price !== product.price) {
+        setError(`Harga produk telah diubah oleh penjual menjadi ${formatPrice(freshProduct.price)}. Silakan muat ulang halaman.`);
+        setSubmitting(false);
+        return;
+      }
     } catch {
       setError('Produk tidak ditemukan. Mungkin sudah dihapus oleh penjual.');
       setSubmitting(false);

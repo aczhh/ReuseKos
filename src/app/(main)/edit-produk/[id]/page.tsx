@@ -62,8 +62,17 @@ export default function EditProductPage() {
 
   useEffect(() => {
     const fetchProduct = async () => {
+      if (!user) return; // tunggu sampai user terload
       try {
         const doc = await databases.getDocument(DATABASE_ID, PRODUCTS_ID, id);
+        
+        // Verifikasi kepemilikan produk
+        if (doc.seller_id !== user.$id) {
+          alert('Akses ditolak: Kamu hanya bisa mengedit barang milikmu sendiri.');
+          router.replace('/beranda');
+          return;
+        }
+
         setForm(prev => ({
           ...prev,
           title: doc.title,
@@ -79,10 +88,12 @@ export default function EditProductPage() {
         }));
       } catch (e) {
         console.error('Failed to fetch product', e);
+        alert('Produk tidak ditemukan');
+        router.replace('/beranda');
       }
     };
-    if (id) fetchProduct();
-  }, [id]);
+    if (id && user) fetchProduct();
+  }, [id, user, router]);
 
   const progressPercent = ((step + 1) / STEPS.length) * 100;
 

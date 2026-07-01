@@ -10,6 +10,7 @@ type WishlistContextType = {
   isInWishlist: (productId: string) => boolean;
   toggleWishlist: (product: Product) => void;
   clearWishlist: () => void;
+  initialized: boolean;
 };
 
 const WishlistContext = createContext<WishlistContextType | undefined>(undefined);
@@ -64,7 +65,7 @@ export function WishlistProvider({ children }: { children: ReactNode }) {
   };
 
   return (
-    <WishlistContext.Provider value={{ items, addToWishlist, removeFromWishlist, isInWishlist, toggleWishlist, clearWishlist }}>
+    <WishlistContext.Provider value={{ items, addToWishlist, removeFromWishlist, isInWishlist, toggleWishlist, clearWishlist, initialized: mounted }}>
       {children}
     </WishlistContext.Provider>
   );

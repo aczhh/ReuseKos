@@ -51,13 +51,19 @@ export default function JualPage() {
 
   useEffect(() => {
     if (profile) {
+      if (profile.role !== 'seller') {
+        alert('Kamu harus mengaktifkan mode Penjual di halaman Profil terlebih dahulu.');
+        router.replace('/profil');
+        return;
+      }
+      
       if (profile.qris_url) {
         setForm(prev => ({ ...prev, paymentMethod: 'qris', qrisUrl: profile.qris_url || '' }));
       } else if (profile.bank_account) {
         setForm(prev => ({ ...prev, paymentMethod: 'bank', bankName: profile.bank_name || '', bankAccount: profile.bank_account || '' }));
       }
     }
-  }, [profile]);
+  }, [profile, router]);
 
   const progressPercent = ((step + 1) / STEPS.length) * 100;
 

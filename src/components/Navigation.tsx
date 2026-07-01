@@ -24,7 +24,7 @@ function formatPrice(n: number) {
 }
 
 function CartDropdown() {
-  const { items, totalItems, totalPrice, removeFromCart } = useCart();
+  const { items, totalItems, totalPrice, removeFromCart, initialized } = useCart();
   const router = useRouter();
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
@@ -48,7 +48,7 @@ function CartDropdown() {
         style={{ position: 'relative' }}
       >
         <ShoppingCart size={20} />
-        {totalItems > 0 && (
+        {initialized && totalItems > 0 && (
           <span className={styles.cartBadge}>{totalItems}</span>
         )}
       </button>
@@ -134,12 +134,12 @@ function CartDropdown() {
 }
 
 function WishlistIcon() {
-  const { items } = useWishlist();
+  const { items, initialized } = useWishlist();
   const count = items.length;
   return (
     <Link href="/wishlist" className={styles.actionBtn} aria-label="Wishlist">
       <Heart size={20} />
-      {count > 0 && (
+      {initialized && count > 0 && (
         <span className={styles.cartBadge}>
           {count > 9 ? '9+' : count}
         </span>

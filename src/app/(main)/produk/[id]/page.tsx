@@ -33,6 +33,9 @@ export default function ProductDetailPage() {
   const [showCartPopup, setShowCartPopup] = useState(false);
   const [sellerProducts, setSellerProducts] = useState<Product[]>([]);
   const [startingChat, setStartingChat] = useState(false);
+  const [adminMode, setAdminMode] = useState(false);
+
+  useEffect(() => { setAdminMode(isAdminViewMode()); }, []);
 
   useEffect(() => {
     const fetchProduct = async () => {
@@ -96,7 +99,6 @@ export default function ProductDetailPage() {
   const seller = product.seller;
   const isMine = user?.id === product.seller_id;
   const inCart = isInCart(product.id);
-  const adminMode = isAdminViewMode();
 
   const handleChat = async () => {
     if (!user || !seller) {

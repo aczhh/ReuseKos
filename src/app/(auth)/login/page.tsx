@@ -67,10 +67,10 @@ export default function LoginPage() {
     setLoading(true);
     try {
       // Use ID.unique() for new users. If the email exists, Appwrite handles it.
-      const sessionToken = await account.createEmailToken({
-        userId: ID.unique(),
-        email: email,
-      });
+      const sessionToken = await account.createEmailToken(
+        ID.unique(),
+        email
+      );
       setUserId(sessionToken.userId);
       setSent(true);
     } catch (authError: any) {
