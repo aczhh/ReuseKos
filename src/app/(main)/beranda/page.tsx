@@ -10,6 +10,7 @@ import { useAuth } from '@/lib/AuthContext';
 import { PRODUCT_CATEGORIES } from '@/lib/utils';
 import ProductCard, { ProductCardSkeleton } from '@/components/ProductCard';
 import styles from './beranda.module.css';
+import { isAdminViewMode } from '@/lib/adminView';
 
 function formatPrice(n: number) {
   return new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 }).format(n);
@@ -63,6 +64,7 @@ function getUniversitasFromEmail(email?: string | null): string | null {
 export default function BerandaPage() {
   const { profile, user } = useAuth();
   const router = useRouter();
+  const adminMode = typeof window !== 'undefined' ? isAdminViewMode() : false;
 
   const handleJualClick = (e: React.MouseEvent) => {
     if (!user) {
@@ -167,17 +169,20 @@ export default function BerandaPage() {
               Hemat budget, kurangi limbah. Marketplace khusus
               mahasiswa untuk jual-beli perabotan kos terpercaya.
             </p>
+            {/* Sembunyikan tombol Jual Barang kalau admin mode */}
             <div className={styles.heroActions}>
               <Link href="/cari" className={`btn btn-secondary ${styles.heroBtnOutline}`}>
                 Mulai Belanja
               </Link>
-              <Link
-                href="/jual"
-                className={`btn btn-orange ${styles.heroBtnOrange}`}
-                onClick={handleJualClick}
-              >
-                Jual Barang
-              </Link>
+              {!adminMode && (
+                <Link
+                  href="/jual"
+                  className={`btn btn-orange ${styles.heroBtnOrange}`}
+                  onClick={handleJualClick}
+                >
+                  Jual Barang
+                </Link>
+              )}
             </div>
           </div>
 
@@ -226,6 +231,9 @@ export default function BerandaPage() {
           <div className={styles.locationInfo}>
             <MapPin size={16} className={styles.locationIcon} />
             {(() => {
+              if (adminMode) {
+                return <span>Menampilkan barang di <strong>semua kampus (Mode Admin)</strong></span>;
+              }
               const univ = getUniversitasFromEmail(profile?.email);
               return univ ? (
                 <span>Menampilkan barang di sekitar <strong>{univ}</strong></span>
@@ -281,14 +289,16 @@ export default function BerandaPage() {
                     <p style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>
                       Jadilah yang pertama berjualan!
                     </p>
-                    <Link
-                      href="/jual"
-                      className="btn btn-primary btn-sm"
-                      style={{ marginTop: 8 }}
-                      onClick={handleJualClick}
-                    >
-                      + Jual Sekarang
-                    </Link>
+                    {!adminMode && (
+                      <Link
+                        href="/jual"
+                        className="btn btn-primary btn-sm"
+                        style={{ marginTop: 8 }}
+                        onClick={handleJualClick}
+                      >
+                        + Jual Sekarang
+                      </Link>
+                    )}
                   </div>
                 )
             }

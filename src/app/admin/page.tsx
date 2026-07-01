@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import {
   Shield, CheckCircle, Clock, Package, Megaphone, X, Inbox, Calendar,
-  Users, ShoppingBag, Search, GraduationCap, Store, User
+  Users, ShoppingBag, Search, GraduationCap, Store, User, Eye, ArrowLeft
 } from 'lucide-react';
 import {
   databases, DATABASE_ID, TRANSACTIONS_ID, PRODUCTS_ID, PROFILES_ID,
@@ -11,6 +11,8 @@ import {
 } from '@/lib/appwrite';
 import { Query } from 'appwrite';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
+import { enterAdminViewMode } from '@/lib/adminView';
 
 function formatPrice(n: number) {
   return new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 }).format(n);
@@ -31,6 +33,7 @@ const STATUS_LABEL: Record<string, string> = {
 type AdminTab = 'transaksi' | 'iklan' | 'pengguna' | 'produk';
 
 export default function AdminPage() {
+  const router = useRouter();
   const [isAdminAuth, setIsAdminAuth] = useState(false);
   const [passwordInput, setPasswordInput] = useState('');
   const [transactions, setTransactions] = useState<Transaction[]>([]);
@@ -290,7 +293,16 @@ export default function AdminPage() {
             </p>
           </div>
         </div>
-        <button className="btn btn-ghost btn-sm" onClick={handleAdminLogout}>Logout</button>
+        <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+          <button
+            className="btn btn-sm"
+            style={{ background: 'linear-gradient(135deg, #6366f1, #8b5cf6)', color: 'white', gap: 6 }}
+            onClick={() => { enterAdminViewMode(); router.push('/beranda'); }}
+          >
+            <Eye size={14} /> Lihat sebagai User
+          </button>
+          <button className="btn btn-ghost btn-sm" onClick={handleAdminLogout}>Logout</button>
+        </div>
       </div>
 
       {/* Stat Cards (shown after users loaded) */}

@@ -3,12 +3,13 @@
 import Link from 'next/link';
 import Image from 'next/image';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
-import { Search, ShoppingCart, User, Menu, X, Wallet, Package, LogOut, Store, ChevronDown, Settings, Trash2, Heart, Home, Tag, BookOpen, Laptop, Utensils, Shirt } from 'lucide-react';
+import { Search, ShoppingCart, User, Menu, X, Wallet, Package, LogOut, Store, ChevronDown, Settings, Trash2, Heart, Home, Tag, BookOpen, Laptop, Utensils, Shirt, Shield, ArrowLeft } from 'lucide-react';
 import { useState, useRef, useEffect, Suspense } from 'react';
 import { useCart } from '@/lib/CartContext';
 import { useAuth } from '@/lib/AuthContext';
 import { useWishlist } from '@/lib/WishlistContext';
 import styles from './Navigation.module.css';
+import { isAdminViewMode, exitAdminViewMode } from '@/lib/adminView';
 
 const NAV_CATEGORIES = [
   { label: 'Barang Terbaru', href: '/beranda' },
@@ -284,10 +285,15 @@ function CategoryLinks() {
 export function Navbar() {
   const [mobileOpen, setMobileOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
+  const [adminMode, setAdminMode] = useState(false);
   const { totalItems } = useCart();
   const { user, profile, signOut } = useAuth();
   const router = useRouter();
   const pathname = usePathname();
+
+  useEffect(() => {
+    setAdminMode(isAdminViewMode());
+  }, [pathname]); // re-check every route change
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
@@ -296,8 +302,43 @@ export function Navbar() {
     }
   };
 
+  const handleExitAdminMode = () => {
+    exitAdminViewMode();
+    setAdminMode(false);
+    router.push('/admin');
+  };
+
   return (
     <header className={styles.navbar}>
+      {/* Admin View Mode Banner */}
+      {adminMode && (
+        <div style={{
+          background: 'linear-gradient(135deg, #6366f1, #8b5cf6)',
+          color: 'white',
+          padding: '6px 16px',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          gap: 10,
+          fontSize: '0.8rem',
+          fontWeight: 600,
+        }}>
+          <Shield size={14} />
+          <span>Mode Admin — Kamu melihat semua produk. Fitur beli/jual dinonaktifkan.</span>
+          <button
+            onClick={handleExitAdminMode}
+            style={{
+              marginLeft: 8, padding: '2px 10px',
+              background: 'rgba(255,255,255,0.2)',
+              border: '1px solid rgba(255,255,255,0.4)',
+              borderRadius: 6, color: 'white', cursor: 'pointer',
+              fontSize: '0.75rem', fontWeight: 700,
+            }}
+          >
+            ← Kembali ke Dashboard
+          </button>
+        </div>
+      )}
       {/* Top Bar */}
       <div className={styles.topBar}>
         <div className={styles.topBarInner}>

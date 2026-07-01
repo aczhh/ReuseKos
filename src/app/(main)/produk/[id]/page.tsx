@@ -14,6 +14,7 @@ import { useAuth } from '@/lib/AuthContext';
 import { useCart } from '@/lib/CartContext';
 import { useWishlist } from '@/lib/WishlistContext';
 import styles from './produk.module.css';
+import { isAdminViewMode } from '@/lib/adminView';
 
 function formatPrice(n: number) {
   return new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 }).format(n);
@@ -95,6 +96,7 @@ export default function ProductDetailPage() {
   const seller = product.seller;
   const isMine = user?.id === product.seller_id;
   const inCart = isInCart(product.id);
+  const adminMode = isAdminViewMode();
 
   const handleChat = async () => {
     if (!user || !seller) {
@@ -339,8 +341,8 @@ export default function ProductDetailPage() {
               )}
             </div>
 
-            {/* CTA Buttons */}
-            {!isMine && !product.is_sold && (
+            {/* CTA Buttons — hidden in admin mode */}
+            {!adminMode && !isMine && !product.is_sold && (
               <>
                 <div className={styles.ctaButtons}>
                   <Link href={`/checkout/${product.id}`} className={`btn btn-primary ${styles.ctaBtn}`}>
@@ -364,6 +366,13 @@ export default function ProductDetailPage() {
                   {isInWishlist(product.id) ? 'Dihapus dari Wishlist' : 'Tambahkan ke Wishlist'}
                 </button>
               </>
+            )}
+
+            {/* Admin mode banner */}
+            {adminMode && (
+              <div style={{ padding: '10px 14px', background: 'rgba(99,102,241,0.1)', border: '1px solid rgba(99,102,241,0.3)', borderRadius: 'var(--radius-md)', fontSize: '0.8rem', color: '#6366f1', fontWeight: 600, marginBottom: 12 }}>
+                Mode Admin — Fitur beli/jual dinonaktifkan
+              </div>
             )}
             
             {!isMine && product.is_sold && (
