@@ -5,13 +5,14 @@ import { useRouter, useParams } from 'next/navigation';
 import {
   ChevronLeft, ChevronRight, Video, MapPin,
   MessageCircle, ShoppingCart, Heart, AlertTriangle, Check,
-  Star, GraduationCap, X, Edit2, Trash2, Package
+  Star, GraduationCap, X, Edit2, Trash2, Package, Frown
 } from 'lucide-react';
 import Link from 'next/link';
 import { databases, DATABASE_ID, PRODUCTS_ID, PROFILES_ID, CHATS_ID, mapDoc, Product } from '@/lib/appwrite';
 import { ID, Query } from 'appwrite';
 import { useAuth } from '@/lib/AuthContext';
 import { useCart } from '@/lib/CartContext';
+import { useWishlist } from '@/lib/WishlistContext';
 import styles from './produk.module.css';
 
 function formatPrice(n: number) {
@@ -23,6 +24,7 @@ export default function ProductDetailPage() {
   const router = useRouter();
   const { user } = useAuth();
   const { addToCart, isInCart } = useCart();
+  const { toggleWishlist, isInWishlist } = useWishlist();
   const [product, setProduct] = useState<Product | null>(null);
   const [loading, setLoading] = useState(true);
   const [photoIndex, setPhotoIndex] = useState(0);
@@ -82,7 +84,7 @@ export default function ProductDetailPage() {
   if (!product) {
     return (
       <div className="empty-state" style={{ minHeight: '100dvh', paddingTop: 'var(--navbar-height)' }}>
-        <div className="empty-state-icon">😕</div>
+        <div className="empty-state-icon" style={{ display: 'flex', justifyContent: 'center', marginBottom: 12 }}><Frown size={48} style={{ color: 'var(--border)' }} /></div>
         <p style={{ fontWeight: 700 }}>Produk tidak ditemukan</p>
         <button className="btn btn-ghost btn-sm" onClick={() => router.back()}>Kembali</button>
       </div>
@@ -273,7 +275,7 @@ export default function ProductDetailPage() {
             {/* Conditions */}
             {product.conditions?.length > 0 && (
               <div className={styles.condSection}>
-                <h3 className={styles.descTitle}>⚠️ KONDISI MINUS</h3>
+                <h3 className={styles.descTitle} style={{ display: 'flex', alignItems: 'center', gap: 6 }}><AlertTriangle size={18} /> KONDISI MINUS</h3>
                 <div className={styles.condList}>
                   {product.conditions.map(c => (
                     <div key={c} className={styles.condItem}>
@@ -353,8 +355,13 @@ export default function ProductDetailPage() {
                     {inCart ? 'Di Keranjang' : 'Tambah ke Keranjang'}
                   </button>
                 </div>
-                <button className={styles.wishlistBtn}>
-                  <Heart size={14} /> Tambahkan ke Wishlist
+                <button
+                  className={styles.wishlistBtn}
+                  onClick={() => toggleWishlist(product)}
+                  style={isInWishlist(product.id) ? { color: 'var(--red-500)', borderColor: 'rgba(248,113,113,0.4)', background: 'rgba(248,113,113,0.08)' } : {}}
+                >
+                  <Heart size={14} fill={isInWishlist(product.id) ? 'currentColor' : 'none'} />
+                  {isInWishlist(product.id) ? 'Dihapus dari Wishlist' : 'Tambahkan ke Wishlist'}
                 </button>
               </>
             )}

@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { ChevronRight } from 'lucide-react';
+import { ChevronRight, Hand, Rocket } from 'lucide-react';
 import { databases, DATABASE_ID, PROFILES_ID } from '@/lib/appwrite';
 import { ID } from 'appwrite';
 import { useAuth } from '@/lib/AuthContext';
@@ -80,8 +80,8 @@ export default function RegisterPage() {
 
       {/* Header */}
       <div style={{ marginTop: 32, marginBottom: 24 }}>
-        <h1 style={{ fontSize: '1.5rem', fontWeight: 800, marginBottom: 4 }}>
-          Lengkapi Profil 👋
+        <h1 style={{ fontSize: '1.5rem', fontWeight: 800, marginBottom: 4, display: 'flex', alignItems: 'center', gap: 6 }}>
+          Lengkapi Profil <Hand size={24} />
         </h1>
         <p style={{ color: 'var(--text-muted)', fontSize: '0.875rem' }}>
           Satu langkah lagi untuk mulai transaksi
@@ -167,7 +167,7 @@ export default function RegisterPage() {
                 disabled={loading}
                 style={{ flex: 2 }}
               >
-                {loading ? <span className="spinner" /> : 'Mulai Sekarang 🚀'}
+                {loading ? <span className="spinner" /> : <span style={{ display: 'flex', alignItems: 'center', gap: 6 }}>Mulai Sekarang <Rocket size={16} /></span>}
               </button>
             </div>
           </div>

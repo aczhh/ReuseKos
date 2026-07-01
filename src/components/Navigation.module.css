@@ -741,7 +741,9 @@
   border-radius: var(--radius-md);
   text-decoration: none;
   transition: all var(--transition-fast);
-  display: block;
+  display: flex;
+  align-items: center;
+  gap: 10px;
 }
 
 .mobileCatLink:hover {

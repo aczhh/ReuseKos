@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { LogOut, Edit2, Package, ChevronRight, Store, X, CheckCircle, CreditCard, QrCode, Trash2, Eye, Megaphone } from 'lucide-react';
+import { LogOut, Edit2, Package, ChevronRight, Store, X, CheckCircle, CreditCard, QrCode, Trash2, Eye, Megaphone, Tag, ShoppingBag, Plus, Banknote, Truck, Lightbulb, Rocket } from 'lucide-react';
 import { databases, DATABASE_ID, TRANSACTIONS_ID, PRODUCTS_ID, PROFILES_ID, mapDoc, Transaction, Product } from '@/lib/appwrite';
 import { Query } from 'appwrite';
 import { useAuth } from '@/lib/AuthContext';
@@ -161,7 +161,7 @@ export default function ProfilPage() {
       }
 
       setMyProducts(prev => prev.map(p => p.id === product.id ? { ...p, is_promoted: true, promoted_until: untilDate.toISOString() } : p));
-      alert('✅ Produk berhasil dipromosikan!');
+      alert('Produk berhasil dipromosikan!');
     } catch (e: any) {
       alert('Gagal mempromosikan produk: ' + e.message);
     }
@@ -286,7 +286,7 @@ export default function ProfilPage() {
               borderRadius: 'var(--radius-md)',
             }}
           >
-            <span style={{ fontSize: '1.2rem' }}>🛍️</span>
+            <ShoppingBag size={24} style={{ color: 'var(--text)' }} />
             <span style={{ fontSize: '0.7rem', fontWeight: 600 }}>Pembelian</span>
           </button>
           {profile.role === 'seller' && (
@@ -299,7 +299,7 @@ export default function ProfilPage() {
                 borderRadius: 'var(--radius-md)',
               }}
             >
-              <span style={{ fontSize: '1.2rem' }}>🏷️</span>
+              <Tag size={24} style={{ color: 'var(--text)' }} />
               <span style={{ fontSize: '0.7rem', fontWeight: 600 }}>Jualanku</span>
             </button>
           )}
@@ -313,7 +313,7 @@ export default function ProfilPage() {
               textDecoration: 'none',
             }}
           >
-            <span style={{ fontSize: '1.2rem' }}>➕</span>
+            <Plus size={24} style={{ color: 'var(--text)' }} />
             <span style={{ fontSize: '0.7rem', fontWeight: 600 }}>Jual Barang</span>
           </Link>
         </div>
@@ -346,7 +346,7 @@ export default function ProfilPage() {
               <Store size={20} color="white" />
             </div>
             <div style={{ flex: 1 }}>
-              <p style={{ fontWeight: 700, fontSize: '0.95rem' }}>Mulai Berjualan 🏷️</p>
+              <p style={{ fontWeight: 700, fontSize: '0.95rem', display: 'flex', alignItems: 'center', gap: 6 }}>Mulai Berjualan <Tag size={16} /></p>
               <p style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginTop: 2 }}>
                 Jual perabot kos lamamu & dapatkan uang
               </p>
@@ -370,7 +370,7 @@ export default function ProfilPage() {
               onClick={() => setActiveTab(tab)}
               style={{ flex: 1 }}
             >
-              {tab === 'beli' ? '🛍️ Pembelian' : '🏷️ Jualanku'}
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}>{tab === 'beli' ? <><ShoppingBag size={14}/> Pembelian</> : <><Tag size={14}/> Jualanku</>}</div>
             </button>
           ))}
         </div>
@@ -511,7 +511,9 @@ export default function ProfilPage() {
             </div>
           ) : (
             <div className="empty-state">
-              <div className="empty-state-icon">🏷️</div>
+              <div className="empty-state-icon" style={{ display: 'flex', justifyContent: 'center', marginBottom: 12 }}>
+                <Tag size={48} style={{ color: 'var(--border)' }} />
+              </div>
               <p style={{ fontWeight: 600 }}>Belum ada barang dijual</p>
               <Link href="/jual" className="btn btn-primary btn-sm" style={{ marginTop: 8 }}>
                 + Jual Sekarang
@@ -550,7 +552,7 @@ export default function ProfilPage() {
             {sellerSuccess ? (
               <div style={{ textAlign: 'center', padding: '16px 0' }}>
                 <CheckCircle size={56} style={{ color: '#22c55e', margin: '0 auto 12px' }} />
-                <p style={{ fontWeight: 800, fontSize: '1.2rem' }}>Selamat, kamu jadi Penjual! 🎉</p>
+                <p style={{ fontWeight: 800, fontSize: '1.2rem' }}>Selamat, kamu jadi Penjual!</p>
                 <p style={{ color: 'var(--text-muted)', fontSize: '0.875rem', marginTop: 6 }}>
                   Mulai jual perabot kos lamamu sekarang.
                 </p>
@@ -560,7 +562,7 @@ export default function ProfilPage() {
                 {/* Step 1: Info manfaat */}
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 20 }}>
                   <div>
-                    <p style={{ fontWeight: 800, fontSize: '1.2rem' }}>Mulai Berjualan 🏷️</p>
+                    <p style={{ fontWeight: 800, fontSize: '1.2rem', display: 'flex', alignItems: 'center', gap: 6 }}>Mulai Berjualan <Tag size={20} /></p>
                     <p style={{ color: 'var(--text-muted)', fontSize: '0.875rem', marginTop: 4 }}>
                       Ubah statusmu jadi Penjual
                     </p>
@@ -583,12 +585,12 @@ export default function ProfilPage() {
                   display: 'flex', flexDirection: 'column', gap: 10,
                 }}>
                   {[
-                    { icon: '✅', text: 'Upload dan jual perabot kos lamamu' },
-                    { icon: '💸', text: 'Terima pembayaran langsung ke saldo' },
-                    { icon: '🚛', text: 'Pilih metode pengiriman (antar / ambil sendiri)' },
+                    { icon: <CheckCircle size={20} />, text: 'Upload dan jual perabot kos lamamu' },
+                    { icon: <Banknote size={20} />, text: 'Terima pembayaran langsung ke saldo' },
+                    { icon: <Truck size={20} />, text: 'Pilih metode pengiriman (antar / ambil sendiri)' },
                   ].map(item => (
                     <div key={item.text} style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                      <span style={{ fontSize: '1.2rem' }}>{item.icon}</span>
+                      <span style={{ display: 'flex', alignItems: 'center' }}>{item.icon}</span>
                       <p style={{ fontSize: '0.875rem' }}>{item.text}</p>
                     </div>
                   ))}
@@ -610,7 +612,7 @@ export default function ProfilPage() {
                 {/* Step 2: Info pembayaran */}
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 20 }}>
                   <div>
-                    <p style={{ fontWeight: 800, fontSize: '1.2rem' }}>Info Pembayaran 💳</p>
+                    <p style={{ fontWeight: 800, fontSize: '1.2rem', display: 'flex', alignItems: 'center', gap: 6 }}>Info Pembayaran <CreditCard size={20} /></p>
                     <p style={{ color: 'var(--text-muted)', fontSize: '0.875rem', marginTop: 4 }}>
                       Pembeli akan transfer ke rekening ini
                     </p>
@@ -679,8 +681,8 @@ export default function ProfilPage() {
                         onChange={e => { setQrisUrl(e.target.value); setPaymentError(''); }}
                       />
                     </div>
-                    <p style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>
-                      💡 Masukkan nama QRIS atau link gambar QRIS milikmu (GoPay, OVO, Dana, dll)
+                    <p style={{ fontSize: '0.75rem', color: 'var(--text-muted)', display: 'flex', alignItems: 'center', gap: 4 }}>
+                      <Lightbulb size={12} /> Masukkan nama QRIS atau link gambar QRIS milikmu (GoPay, OVO, Dana, dll)
                     </p>
                   </div>
                 )}
@@ -691,7 +693,7 @@ export default function ProfilPage() {
                   onClick={handleBecomeSeller}
                   disabled={sellerLoading}
                 >
-                  {sellerLoading ? <span className="spinner" /> : 'Jadikan Saya Penjual 🚀'}
+                  {sellerLoading ? <span className="spinner" /> : <span style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}>Jadikan Saya Penjual <Rocket size={16} /></span>}
                 </button>
 
                 <p style={{ textAlign: 'center', fontSize: '0.75rem', color: 'var(--text-muted)', marginTop: 10 }}>

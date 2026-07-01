@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { Trash2, Minus, Plus, Shield, MapPin, ShoppingBag, AlertTriangle, X, Package } from 'lucide-react';
+import { Trash2, Minus, Plus, Shield, MapPin, ShoppingBag, AlertTriangle, X, Package, Lock, Clock, User } from 'lucide-react';
 import { useCart } from '@/lib/CartContext';
 import { databases, DATABASE_ID, PRODUCTS_ID, mapDoc, Product } from '@/lib/appwrite';
 import styles from './keranjang.module.css';
@@ -155,7 +155,7 @@ export default function KeranjangPage() {
         {/* Alert banner */}
         <div className={styles.safetyBanner}>
           <Shield size={16} className={styles.safetyIcon} />
-          <span>🔒 <strong>Transaksi Aman</strong> dengan Verifikasi Email Kampus</span>
+          <span><Lock size={14} style={{ display: 'inline', verticalAlign: 'middle', marginRight: 4 }} /> <strong>Transaksi Aman</strong> dengan Verifikasi Email Kampus</span>
         </div>
 
         {/* Location */}
@@ -229,8 +229,8 @@ export default function KeranjangPage() {
                     <span className={styles.itemCat}>{item.product.category.toUpperCase()}</span>
                     <p className={styles.itemName}>{item.product.title}</p>
                     <div className={styles.itemMeta}>
-                      <span>⏱ {item.product.conditions?.length === 0 ? 'Like New' : 'Good'}</span>
-                      <span>👤 {item.product.seller?.full_name?.split(' ')[0]} - UB</span>
+                      <span style={{ display: 'flex', alignItems: 'center', gap: 4 }}><Clock size={12} /> {item.product.conditions?.length === 0 ? 'Like New' : 'Good'}</span>
+                      <span style={{ display: 'flex', alignItems: 'center', gap: 4 }}><User size={12} /> {item.product.seller?.full_name?.split(' ')[0]} - UB</span>
                     </div>
                     {item.product.address && (
                       <div className={styles.itemLocation}>

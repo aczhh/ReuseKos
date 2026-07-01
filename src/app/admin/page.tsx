@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Shield, CheckCircle, Clock, Package, Megaphone, X } from 'lucide-react';
+import { Shield, CheckCircle, Clock, Package, Megaphone, X, Inbox, Calendar } from 'lucide-react';
 import { databases, DATABASE_ID, TRANSACTIONS_ID, PRODUCTS_ID, PROFILES_ID, mapDoc, Transaction, Product, Profile } from '@/lib/appwrite';
 import { Query } from 'appwrite';
 
@@ -271,7 +271,9 @@ export default function AdminPage() {
       <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
         {transactions.length === 0 ? (
           <div className="empty-state">
-            <div className="empty-state-icon">📭</div>
+            <div className="empty-state-icon" style={{ display: 'flex', justifyContent: 'center', marginBottom: 12 }}>
+              <Inbox size={48} style={{ color: 'var(--border)' }} />
+            </div>
             <p style={{ fontWeight: 600 }}>Belum ada transaksi</p>
           </div>
         ) : (
@@ -359,7 +361,9 @@ export default function AdminPage() {
       <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
         {promotedProducts.length === 0 ? (
           <div className="empty-state">
-            <div className="empty-state-icon">📢</div>
+            <div className="empty-state-icon" style={{ display: 'flex', justifyContent: 'center', marginBottom: 12 }}>
+              <Megaphone size={48} style={{ color: 'var(--border)' }} />
+            </div>
             <p style={{ fontWeight: 600 }}>Belum ada produk iklan</p>
             <p style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>Penjual bisa mempromosikan produk dari halaman profil mereka.</p>
           </div>
@@ -392,10 +396,10 @@ export default function AdminPage() {
                   </p>
                   <p style={{ fontSize: '0.7rem', color: isExpired ? 'var(--red-500)' : 'var(--orange-500)', marginTop: 2 }}>
                     {isExpired 
-                      ? '⏰ Iklan Kadaluarsa'
+                      ? <><Clock size={12} style={{ display: 'inline', verticalAlign: 'middle', marginRight: 4 }} /> Iklan Kadaluarsa</>
                       : p.promoted_until 
-                        ? `📅 Aktif sampai ${new Date(p.promoted_until).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' })}` 
-                        : '📅 Aktif (tanpa batas)'
+                        ? <><Calendar size={12} style={{ display: 'inline', verticalAlign: 'middle', marginRight: 4 }} /> Aktif sampai {new Date(p.promoted_until).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' })}</> 
+                        : <><Calendar size={12} style={{ display: 'inline', verticalAlign: 'middle', marginRight: 4 }} /> Aktif (tanpa batas)</>
                     }
                   </p>
                 </div>

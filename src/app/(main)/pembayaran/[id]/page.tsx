@@ -217,7 +217,7 @@ export default function PembayaranPage() {
         {tx.status === 'completed' && (
           <div className={styles.successAlert}>
             <CheckCircle2 size={20} className={styles.successAlertIcon} />
-            <p>Transaksi berhasil diselesaikan. Terima kasih sudah berbelanja di ReuseKos! 🎉</p>
+            <p>Transaksi berhasil diselesaikan. Terima kasih sudah berbelanja di ReuseKos!</p>
           </div>
         )}
 

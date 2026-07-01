@@ -217,7 +217,9 @@ function CariContent() {
                 ? results.map(p => <ProductCard key={p.id} product={p} />)
                 : (
                   <div className="empty-state" style={{ gridColumn: '1/-1' }}>
-                    <div className="empty-state-icon">🔍</div>
+                    <div className="empty-state-icon" style={{ display: 'flex', justifyContent: 'center', marginBottom: 12 }}>
+                      <SearchIcon size={48} style={{ color: 'var(--border)' }} />
+                    </div>
                     <p style={{ fontWeight: 600 }}>Tidak ada barang</p>
                     <p style={{ fontSize: '0.85rem' }}>Coba ubah filter atau kata kunci</p>
                   </div>

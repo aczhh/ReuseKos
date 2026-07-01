@@ -4,7 +4,7 @@ import { useState, useRef, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import {
   Upload, Video, Check, MapPin, ChevronLeft, ChevronRight,
-  X, AlertTriangle, Image as ImageIcon, CreditCard, QrCode
+  X, AlertTriangle, Image as ImageIcon, CreditCard, QrCode, Tag, Lightbulb, Rocket
 } from 'lucide-react';
 import { databases, storage, DATABASE_ID, PRODUCTS_ID, BUCKET_ID, PROFILES_ID } from '@/lib/appwrite';
 import { ID } from 'appwrite';
@@ -241,7 +241,7 @@ export default function JualPage() {
     <div className={styles.page}>
       {/* Header */}
       <div className={styles.header}>
-        <h1 className={styles.headerTitle}>🏷️ Buka Lapak</h1>
+        <h1 className={styles.headerTitle} style={{ display: 'flex', alignItems: 'center' }}><Tag size={20} style={{ marginRight: 8 }} /> Buka Lapak</h1>
         <p className={styles.headerSub}>Langkah {step + 1} dari {STEPS.length}: <strong>{STEPS[step]}</strong></p>
       </div>
 
@@ -408,7 +408,7 @@ export default function JualPage() {
           <div>
             <p style={{ fontWeight: 700, marginBottom: 4 }}>Deklarasi Kondisi Minus</p>
             <p style={{ fontSize: '0.85rem', color: 'var(--text-muted)', marginBottom: 16 }}>
-              Centang kondisi yang sesuai. Kejujuran membangun kepercayaan! ✅
+              Centang kondisi yang sesuai. Kejujuran membangun kepercayaan!
             </p>
             <div className={styles.checkList}>
               {CONDITION_CHECKLIST.map(cond => {
@@ -455,7 +455,7 @@ export default function JualPage() {
                   background: 'linear-gradient(135deg, rgba(99,102,241,0.1), rgba(193,68,14,0.08))'
                 }}>
                   <MapPin size={32} style={{ color: 'var(--terra-500)' }} />
-                  <p style={{ fontWeight: 700, fontSize: '0.9rem' }}>Lokasi Terdeteksi ✅</p>
+                  <p style={{ fontWeight: 700, fontSize: '0.9rem', display: 'flex', alignItems: 'center', gap: 4 }}>Lokasi Terdeteksi <Check size={14} style={{ color: 'var(--green-600)' }} /></p>
                   <p style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>
                     {form.lat.toFixed(5)}, {form.lng.toFixed(5)}
                   </p>
@@ -503,7 +503,7 @@ export default function JualPage() {
       {step === 4 && (
         <div className={styles.formBody}>
           <div>
-            <p style={{ fontWeight: 700, marginBottom: 4 }}>Rekening Pencairan 💳</p>
+            <p style={{ fontWeight: 700, marginBottom: 4, display: 'flex', alignItems: 'center', gap: 6 }}>Rekening Pencairan <CreditCard size={16} /></p>
             <p style={{ fontSize: '0.85rem', color: 'var(--text-muted)', marginBottom: 16 }}>
               Uang hasil penjualanmu akan ditransfer ke rekening / QRIS ini setelah pembeli mengonfirmasi pesanan.
             </p>
@@ -558,8 +558,8 @@ export default function JualPage() {
                     onChange={e => setForm(p => ({ ...p, qrisUrl: e.target.value }))}
                   />
                 </div>
-                <p style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>
-                  💡 Masukkan link gambar QRIS milikmu (GoPay, OVO, Dana, dll)
+                <p style={{ fontSize: '0.75rem', color: 'var(--text-muted)', display: 'flex', alignItems: 'center', gap: 4 }}>
+                  <Lightbulb size={12} /> Masukkan link gambar QRIS milikmu (GoPay, OVO, Dana, dll)
                 </p>
               </div>
             )}
@@ -591,7 +591,7 @@ export default function JualPage() {
             disabled={loading}
             style={{ flex: 2 }}
           >
-            {loading ? <span className="spinner" /> : '🚀 Pasang Iklan!'}
+            {loading ? <span className="spinner" /> : <span style={{ display: 'flex', alignItems: 'center', gap: 6 }}><Rocket size={16} /> Pasang Iklan!</span>}
           </button>
         )}
       </div>

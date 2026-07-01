@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
-import { ChevronRight, MapPin, Shield, Sofa, Package, Coffee, Droplet } from 'lucide-react';
+import { ChevronRight, MapPin, Shield, Sofa, Package, Coffee, Droplet, Search } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { databases, DATABASE_ID, PRODUCTS_ID, PROFILES_ID, mapDoc, Product } from '@/lib/appwrite';
@@ -274,7 +274,9 @@ export default function BerandaPage() {
                 ? products.map(p => <ProductCard key={p.id} product={p} />)
                 : (
                   <div className="empty-state" style={{ gridColumn: '1/-1' }}>
-                    <div className="empty-state-icon">🔍</div>
+                    <div className="empty-state-icon" style={{ display: 'flex', justifyContent: 'center', marginBottom: 12 }}>
+                      <Search size={48} style={{ color: 'var(--border)' }} />
+                    </div>
                     <p style={{ fontWeight: 600 }}>Belum ada barang</p>
                     <p style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>
                       Jadilah yang pertama berjualan!

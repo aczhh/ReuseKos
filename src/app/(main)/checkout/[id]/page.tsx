@@ -229,11 +229,12 @@ export default function CheckoutPage() {
                   <input className="form-input" value={profile?.jurusan || 'Universitas Brawijaya'} readOnly />
                 </div>
                 <div className="form-group">
-                  <label className="form-label">No Telepon</label>
+                  <label className="form-label">No Telepon (WhatsApp)</label>
                   <input
                     className="form-input"
                     placeholder="08xxxxxxxxxx"
-                    defaultValue={profile?.whatsapp || ''}
+                    value={profile?.whatsapp || ''}
+                    readOnly
                   />
                 </div>
               </div>

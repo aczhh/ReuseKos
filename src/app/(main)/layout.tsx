@@ -2,6 +2,7 @@
 
 import { AuthProvider, useAuth } from '@/lib/AuthContext';
 import { CartProvider } from '@/lib/CartContext';
+import { WishlistProvider } from '@/lib/WishlistContext';
 import { Navbar } from '@/components/Navigation';
 import { usePathname, useRouter } from 'next/navigation';
 import { useEffect } from 'react';
@@ -48,12 +49,14 @@ export default function MainLayout({ children }: { children: React.ReactNode }) 
   return (
     <AuthProvider>
       <CartProvider>
-        <AuthGuard>
-          <Navbar />
-          <main>
-            {children}
-          </main>
-        </AuthGuard>
+        <WishlistProvider>
+          <AuthGuard>
+            <Navbar />
+            <main>
+              {children}
+            </main>
+          </AuthGuard>
+        </WishlistProvider>
       </CartProvider>
     </AuthProvider>
   );

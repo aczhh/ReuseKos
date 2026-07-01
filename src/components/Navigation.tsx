@@ -3,7 +3,7 @@
 import Link from 'next/link';
 import Image from 'next/image';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
-import { Search, ShoppingCart, User, Menu, X, Wallet, Package, LogOut, Store, ChevronDown, Settings, Trash2, Heart } from 'lucide-react';
+import { Search, ShoppingCart, User, Menu, X, Wallet, Package, LogOut, Store, ChevronDown, Settings, Trash2, Heart, Home, Tag, BookOpen, Laptop, Utensils, Shirt } from 'lucide-react';
 import { useState, useRef, useEffect, Suspense } from 'react';
 import { useCart } from '@/lib/CartContext';
 import { useAuth } from '@/lib/AuthContext';
@@ -16,7 +16,6 @@ const NAV_CATEGORIES = [
   { label: 'Elektronik', href: '/cari?cat=Elektronik' },
   { label: 'Peralatan Dapur', href: '/cari?cat=Peralatan+Masak' },
   { label: 'Buku & Alat Kuliah', href: '/cari?cat=Lainnya' },
-  { label: 'Fashion', href: '/cari?cat=Lainnya' },
 ];
 
 function formatPrice(n: number) {
@@ -416,27 +415,30 @@ export function Navbar() {
 
             <div className={styles.mobileDivider} />
             <Link href="/keranjang" className={styles.mobileCatLink} onClick={() => setMobileOpen(false)}>
-              🛒 Keranjang {totalItems > 0 && `(${totalItems})`}
+              <ShoppingCart size={16} /> Keranjang {totalItems > 0 && `(${totalItems})`}
+            </Link>
+            <Link href="/wishlist" className={styles.mobileCatLink} onClick={() => setMobileOpen(false)}>
+              <Heart size={16} /> Wishlist
             </Link>
             <Link href="/jual" className={`${styles.mobileCatLink} ${styles.mobileCatLinkSell}`} onClick={() => setMobileOpen(false)}>
-              🏷️ Mulai Berjualan
+              <Tag size={16} /> Mulai Berjualan
             </Link>
             {user ? (
               <>
                 <Link href="/profil" className={styles.mobileCatLink} onClick={() => setMobileOpen(false)}>
-                  👤 Profil & Pesanan
+                  <User size={16} /> Profil &amp; Pesanan
                 </Link>
                 <button
                   className={`${styles.mobileCatLink} ${styles.mobileCatLinkLogout}`}
                   onClick={async () => { setMobileOpen(false); await signOut(); router.push('/login'); }}
                   style={{ width: '100%', textAlign: 'left', background: 'none', border: 'none', cursor: 'pointer' }}
                 >
-                  🚪 Keluar
+                  <LogOut size={16} /> Keluar
                 </button>
               </>
             ) : (
               <Link href="/login" className={styles.mobileCatLink} onClick={() => setMobileOpen(false)}>
-                🔐 Login
+                <User size={16} /> Login
               </Link>
             )}
           </div>

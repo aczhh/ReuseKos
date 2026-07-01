@@ -4,7 +4,7 @@ import { useState, useEffect, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import Image from 'next/image';
-import { Mail, ArrowRight, ShieldCheck } from 'lucide-react';
+import { Mail, ArrowRight, ShieldCheck, ArrowLeft } from 'lucide-react';
 import { account, databases, DATABASE_ID, PROFILES_ID } from '@/lib/appwrite';
 import { ID, Query, OAuthProvider } from 'appwrite';
 import styles from '../auth.module.css';
@@ -155,7 +155,18 @@ export default function LoginPage() {
       <div className={styles.blob1} />
       <div className={styles.blob2} />
 
-      <div className={styles.authHeader}>
+      {/* Back to Beranda button */}
+      <div style={{ position: 'relative', zIndex: 1 }}>
+        <Link
+          href="/beranda"
+          className="btn btn-ghost btn-sm"
+          style={{ display: 'inline-flex', alignItems: 'center', gap: 6, marginBottom: 8 }}
+        >
+          <ArrowLeft size={16} /> Kembali ke Beranda
+        </Link>
+      </div>
+
+      <div className={styles.authHeader} style={{ marginTop: 16 }}>
         <Image
           src="/logo.png"
           alt="ReuseKos Logo"
