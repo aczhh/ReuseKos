@@ -37,13 +37,10 @@ export default function LoginPage() {
   const [otp, setOtp] = useState(['', '', '', '', '', '']);
   const [userId, setUserId] = useState('');
 
-  const handleGoogleLogin = async () => {
+  const handleGoogleLogin = () => {
     setLoading(true);
     setError('');
     try {
-      // Hapus sesi lama jika ada
-      try { await account.deleteSession('current'); } catch (_) { }
-
       account.createOAuth2Token(
         OAuthProvider.Google,
         `${window.location.origin}/callback`, // Success URL

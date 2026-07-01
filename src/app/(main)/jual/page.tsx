@@ -382,7 +382,7 @@ export default function JualPage() {
               >
                 <div className={styles.uploadIcon}><Video size={22} /></div>
                 <p className={styles.uploadTitle}>Tap untuk upload video</p>
-                <p className={styles.uploadHint}>MP4 • Maksimal 10 detik • Opsional</p>
+                <p className={styles.uploadHint}>MP4 • Maksimal 10 detik </p>
               </div>
             ) : (
               <div className={styles.videoPreview}>
