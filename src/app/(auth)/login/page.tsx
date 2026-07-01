@@ -81,8 +81,23 @@ export default function LoginPage() {
 
   const handleOtpChange = (index: number, value: string) => {
     if (!/^\d*$/.test(value)) return;
+    
+    // Handle paste or auto-fill (multiple characters)
+    if (value.length > 1) {
+      const pasted = value.slice(0, 6).split('');
+      const newOtp = [...otp];
+      for (let i = 0; i < pasted.length; i++) {
+        if (index + i < 6) newOtp[index + i] = pasted[i];
+      }
+      setOtp(newOtp);
+      // Focus the next empty box or the last box
+      const nextIndex = Math.min(index + pasted.length, 5);
+      document.getElementById(`otp-${nextIndex}`)?.focus();
+      return;
+    }
+
     const newOtp = [...otp];
-    newOtp[index] = value.slice(-1);
+    newOtp[index] = value;
     setOtp(newOtp);
 
     // Auto-focus next
