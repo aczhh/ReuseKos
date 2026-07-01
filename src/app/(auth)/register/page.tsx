@@ -59,7 +59,6 @@ export default function RegisterPage() {
           jurusan: form.jurusan.trim(),
           whatsapp: form.whatsapp.trim(),
           role: 'buyer', // Default role, can be upgraded to seller from profile
-          saldo: 0,
         }
       );
 

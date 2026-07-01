@@ -130,12 +130,7 @@ export default function ProfilPage() {
     }
 
     // Promosikan
-    if ((profile.saldo || 0) < PROMO_PRICE) {
-      alert(`Saldo tidak cukup! Dibutuhkan ${formatPrice(PROMO_PRICE)}, saldo kamu ${formatPrice(profile.saldo || 0)}.`);
-      return;
-    }
-
-    if (!window.confirm(`Promosikan "${product.title}" selama ${PROMO_DAYS} hari?\nBiaya: ${formatPrice(PROMO_PRICE)} (dipotong dari saldo)\n\nSaldo kamu: ${formatPrice(profile.saldo || 0)}`)) return;
+    if (!window.confirm(`Promosikan "${product.title}" selama ${PROMO_DAYS} hari?`)) return;
     
     setPromoteLoading(product.id);
     try {
@@ -148,18 +143,7 @@ export default function ProfilPage() {
         promoted_until: untilDate.toISOString(),
       });
 
-      // Potong saldo penjual
-      const profileResponse = await databases.listDocuments(DATABASE_ID, PROFILES_ID, [
-        Query.equal('user_id', user.$id), Query.limit(1)
-      ]);
-      if (profileResponse.documents.length > 0) {
-        const profileDoc = profileResponse.documents[0];
-        await databases.updateDocument(DATABASE_ID, PROFILES_ID, profileDoc.$id, {
-          saldo: (profileDoc.saldo || 0) - PROMO_PRICE,
-        });
-        await refreshProfile();
-      }
-
+      // Note: Saldo logic has been removed as per user request
       setMyProducts(prev => prev.map(p => p.id === product.id ? { ...p, is_promoted: true, promoted_until: untilDate.toISOString() } : p));
       alert('Produk berhasil dipromosikan!');
     } catch (e: any) {
@@ -586,7 +570,7 @@ export default function ProfilPage() {
                 }}>
                   {[
                     { icon: <CheckCircle size={20} />, text: 'Upload dan jual perabot kos lamamu' },
-                    { icon: <Banknote size={20} />, text: 'Terima pembayaran langsung ke saldo' },
+                    { icon: <Banknote size={20} />, text: 'Terima pembayaran langsung ke rekening/QRIS' },
                     { icon: <Truck size={20} />, text: 'Pilih metode pengiriman (antar / ambil sendiri)' },
                   ].map(item => (
                     <div key={item.text} style={{ display: 'flex', alignItems: 'center', gap: 10 }}>

@@ -34,7 +34,6 @@ export type Profile = {
   jurusan: string;
   whatsapp: string;
   role: 'buyer' | 'seller' | 'driver';
-  saldo: number;
   bank_name: string | null;
   bank_account: string | null;
   qris_url: string | null;

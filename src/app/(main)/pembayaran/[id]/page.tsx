@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
-import { CheckCircle2, Clock, Package, Truck, QrCode, Navigation, GraduationCap, Building, CameraOff, XCircle } from 'lucide-react';
+import { CheckCircle2, Clock, Package, Truck, QrCode, Navigation, GraduationCap, Building, CameraOff, XCircle, AlertTriangle } from 'lucide-react';
 import { databases, DATABASE_ID, TRANSACTIONS_ID, PRODUCTS_ID, PROFILES_ID, mapDoc, Transaction, Product } from '@/lib/appwrite';
 import { Query } from 'appwrite';
 import { SPLIT_RATIO } from '@/lib/utils';
@@ -56,20 +56,7 @@ export default function PembayaranPage() {
     if (!tx || !tx.product) return;
     setConfirming(true);
 
-    const sellerCut = Math.floor(tx.product.price * SPLIT_RATIO.seller);
-
-    const sellerResponse = await databases.listDocuments(
-      DATABASE_ID,
-      PROFILES_ID,
-      [Query.equal('user_id', tx.seller_id)]
-    );
-
-    if (sellerResponse.documents.length > 0) {
-      const sellerProfile = sellerResponse.documents[0];
-      await databases.updateDocument(DATABASE_ID, PROFILES_ID, sellerProfile.$id, {
-        saldo: (sellerProfile.saldo || 0) + sellerCut
-      });
-    }
+    // Saldo is no longer updated automatically since web doesn't use it.
 
     await databases.updateDocument(DATABASE_ID, TRANSACTIONS_ID, tx.id, { status: 'completed' });
     setTx(prev => prev ? { ...prev, status: 'completed' } : prev);
@@ -87,7 +74,9 @@ export default function PembayaranPage() {
   if (!tx) {
     return (
       <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', minHeight: '100dvh', gap: 16, padding: '24px', textAlign: 'center' }}>
-        <div style={{ fontSize: '3rem' }}>⚠️</div>
+        <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 12 }}>
+          <AlertTriangle size={48} style={{ color: 'var(--amber-500)' }} />
+        </div>
         <h2 style={{ fontWeight: 700, fontSize: '1.2rem' }}>Transaksi Tidak Ditemukan</h2>
         <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem', maxWidth: 400 }}>
           Transaksi ini tidak ditemukan atau sudah tidak valid.
