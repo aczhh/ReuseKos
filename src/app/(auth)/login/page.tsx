@@ -44,7 +44,7 @@ export default function LoginPage() {
       // Hapus sesi lama jika ada
       try { await account.deleteSession('current'); } catch (_) { }
 
-      account.createOAuth2Session(
+      account.createOAuth2Token(
         OAuthProvider.Google,
         `${window.location.origin}/callback`, // Success URL
         `${window.location.origin}/login?error=failed` // Failure URL

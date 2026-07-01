@@ -13,7 +13,18 @@ export default function CallbackPage() {
   useEffect(() => {
     const checkGoogleSession = async () => {
       try {
-        // Ambil data user yang login saat ini (dibuat otomatis oleh Appwrite OAuth)
+        const urlParams = new URLSearchParams(window.location.search);
+        const userId = urlParams.get('userId');
+        const secret = urlParams.get('secret');
+
+        if (userId && secret) {
+          // Buat session menggunakan token dari OAuth2Token redirect
+          await account.createSession(userId, secret);
+          // Bersihkan URL dari parameter agar rapi
+          window.history.replaceState({}, document.title, '/callback');
+        }
+
+        // Ambil data user yang login saat ini
         const currentUser = await account.get();
         const email = currentUser.email.toLowerCase();
 
