@@ -7,7 +7,19 @@ import { databases, DATABASE_ID, PRODUCTS_ID, PROFILES_ID, mapDoc, Product } fro
 import { Query } from 'appwrite';
 import ProductCard, { ProductCardSkeleton } from '@/components/ProductCard';
 import { PRODUCT_CATEGORIES } from '@/lib/utils';
+import { useAuth } from '@/lib/AuthContext';
+import { isAdminViewMode } from '@/lib/adminView';
 import styles from './cari.module.css';
+
+function getKampusDomain(email?: string | null): string | null {
+  if (!email) return null;
+  const domain = email.split('@')[1]?.toLowerCase();
+  if (!domain) return null;
+  const parts = domain.split('.');
+  const acIdx = parts.indexOf('ac');
+  if (acIdx > 0) return parts.slice(acIdx - 1).join('.');
+  return null;
+}
 
 const PRICE_FILTERS = [
   { label: '< Rp100rb', max: 100000 },
@@ -20,7 +32,9 @@ function CariContent() {
   const searchParams = useSearchParams();
   const initialQ = searchParams.get('q') || '';
   const initialCat = searchParams.get('cat') || '';
+  const { profile } = useAuth();
 
+  const [adminMode] = useState(() => isAdminViewMode());
   const [query, setQuery] = useState(initialQ);
   const [activeCategory, setActiveCategory] = useState(initialCat);
   const [activePriceFilter, setActivePriceFilter] = useState('');
@@ -49,9 +63,29 @@ function CariContent() {
   const doSearch = useCallback(async () => {
     setLoading(true);
     try {
+      // Filter kampus: cari seller_id dari kampus yg sama
+      let sellerUserIds: string[] | null = null;
+      const kampusDomain = getKampusDomain(profile?.email);
+      if (!adminMode && kampusDomain) {
+        const sellerRes = await databases.listDocuments(
+          DATABASE_ID,
+          PROFILES_ID,
+          [Query.endsWith('email', kampusDomain), Query.limit(100)]
+        );
+        sellerUserIds = sellerRes.documents.map(d => d.user_id);
+      }
+
       const queries = buildQueries();
+      if (sellerUserIds && sellerUserIds.length > 0) {
+        queries.push(Query.equal('seller_id', sellerUserIds));
+      } else if (sellerUserIds !== null && sellerUserIds.length === 0) {
+        // Tidak ada penjual dari kampus ini
+        setResults([]);
+        setLoading(false);
+        return;
+      }
+
       const response = await databases.listDocuments(DATABASE_ID, PRODUCTS_ID, queries);
-      
       const fetchedProducts = response.documents.map(doc => mapDoc<Product>(doc));
 
       // Fetch sellers
@@ -80,7 +114,7 @@ function CariContent() {
       console.error(error);
     }
     setLoading(false);
-  }, [buildQueries, page]);
+  }, [buildQueries, page, profile, adminMode]);
 
   useEffect(() => {
     const t = setTimeout(doSearch, 300);

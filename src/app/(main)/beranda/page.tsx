@@ -61,6 +61,22 @@ function getUniversitasFromEmail(email?: string | null): string | null {
   return null;
 }
 
+/** Ambil suffix kampus (.ac.id part) dari email untuk filter */
+function getKampusDomain(email?: string | null): string | null {
+  if (!email) return null;
+  const domain = email.split('@')[1]?.toLowerCase();
+  if (!domain) return null;
+  // Ambil root ac.id domain, misal: student.ub.ac.id → ub.ac.id
+  const parts = domain.split('.');
+  // cari posisi 'ac'
+  const acIdx = parts.indexOf('ac');
+  if (acIdx > 0) {
+    // ambil ac.id ke kanan, dan 1 level ke kiri (nama kampus)
+    return parts.slice(acIdx - 1).join('.');
+  }
+  return null;
+}
+
 export default function BerandaPage() {
   const { profile, user } = useAuth();
   const router = useRouter();
@@ -78,43 +94,62 @@ export default function BerandaPage() {
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
 
-  const fetchProducts = useCallback(async () => {
+  const fetchProducts = useCallback(async (kampusDomain: string | null, isAdmin: boolean) => {
     setLoading(true);
     try {
-      // Fetch regular products
-      const response = await databases.listDocuments(
-        DATABASE_ID,
-        PRODUCTS_ID,
-        [
-          Query.equal('is_sold', false),
-          Query.orderDesc('$createdAt'),
-          Query.limit(8)
-        ]
-      );
+      let sellerUserIds: string[] | null = null;
 
+      // Filter berdasarkan kampus kecuali mode admin
+      if (!isAdmin && kampusDomain) {
+        const sellerRes = await databases.listDocuments(
+          DATABASE_ID,
+          PROFILES_ID,
+          [
+            Query.endsWith('email', kampusDomain),
+            Query.limit(100)
+          ]
+        );
+        sellerUserIds = sellerRes.documents.map(d => d.user_id);
+      }
+
+      // Fetch regular products
+      const productQueries = [
+        Query.equal('is_sold', false),
+        Query.orderDesc('$createdAt'),
+        Query.limit(8)
+      ];
+      if (sellerUserIds && sellerUserIds.length > 0) {
+        productQueries.push(Query.equal('seller_id', sellerUserIds));
+      } else if (sellerUserIds !== null && sellerUserIds.length === 0) {
+        // Tidak ada penjual dari kampus ini → kosongkan
+        setProducts([]);
+        setPromotedProducts([]);
+        setLoading(false);
+        return;
+      }
+
+      const response = await databases.listDocuments(DATABASE_ID, PRODUCTS_ID, productQueries);
       const fetchedProducts = response.documents.map(doc => mapDoc<Product>(doc));
       
       // Fetch promoted products
       try {
-        const promoResponse = await databases.listDocuments(
-          DATABASE_ID,
-          PRODUCTS_ID,
-          [
-            Query.equal('is_sold', false),
-            Query.equal('is_promoted', true),
-            Query.limit(5)
-          ]
-        );
+        const promoQueries = [
+          Query.equal('is_sold', false),
+          Query.equal('is_promoted', true),
+          Query.limit(5)
+        ];
+        if (sellerUserIds && sellerUserIds.length > 0) {
+          promoQueries.push(Query.equal('seller_id', sellerUserIds));
+        }
+        const promoResponse = await databases.listDocuments(DATABASE_ID, PRODUCTS_ID, promoQueries);
         const promos = promoResponse.documents
           .map(doc => mapDoc<Product>(doc))
           .filter(p => {
-            // Filter expired promos
             if (!p.promoted_until) return true;
             return new Date(p.promoted_until) > new Date();
           });
         setPromotedProducts(promos);
       } catch {
-        // is_promoted attribute might not exist yet, silently ignore
         setPromotedProducts([]);
       }
 
@@ -126,12 +161,10 @@ export default function BerandaPage() {
           PROFILES_ID,
           [Query.equal('user_id', sellerIds)]
         );
-        
         const sellersMap = new Map();
         sellersResponse.documents.forEach(doc => {
           sellersMap.set(doc.user_id, mapDoc(doc));
         });
-
         fetchedProducts.forEach(p => {
           p.seller = sellersMap.get(p.seller_id);
         });
@@ -145,8 +178,11 @@ export default function BerandaPage() {
   }, []);
 
   useEffect(() => {
-    fetchProducts();
-  }, [fetchProducts]);
+    // Tunggu sampai profile terload sebelum fetch
+    if (profile === undefined) return;
+    const kampusDomain = getKampusDomain(profile?.email);
+    fetchProducts(kampusDomain, adminMode);
+  }, [profile, adminMode, fetchProducts]);
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
